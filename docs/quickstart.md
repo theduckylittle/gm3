@@ -24,6 +24,7 @@ mkdir geomoose
 cd geomoose
 git clone git@github.com:[YOUR_USER_NAME]/gm3.git
 git clone git@github.com:geomoose/gm3-demo-data.git
+git clone git@github.com:geomoose/gm3-demos.git
 ```
 
 ## Starting the docker image 
@@ -55,6 +56,11 @@ cd ~/geomoose/gm3
 npm install
 ```
 
+## Check that GeoMoose tests are passing
+```
+npm test
+```
+
 ## Build the GeoMoose package
 
 This will create the combined `geomoose.js` file.
@@ -62,33 +68,48 @@ This will create the combined `geomoose.js` file.
 grunt build
 ```
 
-## Create a config.js file
-To configure the demo application, it needs to know where MapServer and the Mapfiles are on the server.
+## Starting a GeoMoose Demo
 
-Add the following to `~/geomoose/gm3/demo/config.js`:
-```
-CONFIG = {
-    mapserver_url: '/mapserver/cgi-bin/mapserv',
-    mapfile_root: '/data/'
-};
-```
+These are the steps necessary to start the GeoMoose desktop demo.
 
-*Fun fact!* This is the same contents as `config.js.example`, so you could also `cp config.js.example config.js`.
+ 1. Change to the `~/geomoose/gm3-demos/desktop` directory.
+ 
+    ```
+    cd ~/geomoose/gm3-demos/desktop
+    ```
+ 2. Link to your cloned fork of GeoMoose:
+ 
+    ```
+    ln -s ~/geomoose/gm3 ./geomoose
+    ```
+        
+ 3. Create a `config.js` file.
 
-## Running the tests
+    To configure the demo application, it needs to know where MapServer and the Mapfiles are on the server.
 
-Then, let's see that all of the tests are working:
-```
-npm test
-```
+    Add the following to `~/geomoose/gm3-demos/desktop/config.js`:
+    
+    ```
+    CONFIG = {
+        mapserver_url: '/mapserver/cgi-bin/mapserv',
+        mapfile_root: '/data/'
+    };
+    ```
 
-## Starting up the built-in web server
+    *Fun fact!* This is the same contents as `config.js.example`, so you could also `cp config.js.example config.js`.
 
-If the test are working then let's open up GeoMoose!
-```
-grunt serve
-```
+ 4. Install the development server.
+ 
+    ```
+    npm install
+    ```
 
-Open GeoMoose in a browser: [http://localhost:4000/demo/test.html](http://localhost:4000/demo/test.html)
+ 5. Serve it!
+ 
+    ```
+    npm serve
+    ```
+
+Open GeoMoose in a browser: [http://localhost:4000/debug.html](http://localhost:4000/debug.html)
 
 

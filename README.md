@@ -1,8 +1,18 @@
 # GeoMoose3
 
-This is the main repository for the new GeoMoose3 library/application. To learn more about GeoMoose [visit the homepage.](http://www.geomoose.org)
+This is the main repository for the new GeoMoose3 library. To learn more about GeoMoose [visit the homepage.](http://www.geomoose.org)
 
 [![Build Status](https://api.travis-ci.org/geomoose/gm3.svg?branch=master)](https://travis-ci.org/geomoose/gm3)
+
+## Warning!
+
+GeoMoose has now been broken up into three distinct repositories:
+
+ * `gm3` - This repository. It contains the core GeoMoose code. But there are no demos here.
+ * `gm3-demo-data` - Contains data used for testing and demos.
+ * `gm3-demos` - Contains actual GeoMoose demos.
+
+If you are a user looking to get started with GeoMoose then please head to [our website](http://www.geomoose.org/downoad.html) to download the latest package.
 
 ## Quickstart
 
