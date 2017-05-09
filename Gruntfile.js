@@ -138,14 +138,14 @@ module.exports = function(grunt) {
         watch: {
             gm3: {
                 files: ['src/gm3/**/*'],
-                tasks: ['webpack:build-dev'],
+                tasks: ['eslint', 'webpack:build-dev'],
                 options: {
                     spawn: false,
                 }
             },
             less: {
                 files: ['src/less/**/*'],
-                tasks: ['less:build']
+                tasks: ['lintless', 'less:build']
             },
             services: {
                 files: ['src/services/*'],
@@ -168,8 +168,6 @@ module.exports = function(grunt) {
     });
 
     grunt.task.registerTask('lint', ['lintless', 'eslint']);
-
-    grunt.task.registerTask('serve', ['webpack-dev-server:start', 'watch']);
 
     // only build the non-minified version.
     grunt.task.registerTask('build-dev', ['lint', 'copy:services', 'webpack:build-dev']);
