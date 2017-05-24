@@ -123,7 +123,7 @@
                     <div class="item">
                         <label>Est. Market Value:</label> {{ properties.EMV_TOTAL }}
                     </div>
-                    <div class="item"><label>Acres:</label> {{ properties.ACRES_POLY }}</div>
+
                 </div>
             ]]></template>
             <template name="search"><![CDATA[
@@ -247,6 +247,16 @@
                         <label>Est. Market Value:</label> <i>{{ properties.EMV_TOTAL }}</i>
                     </div>
                     <div class="item"><label>Acres:</label> {{ properties.ACRES_POLY }}</div>
+                    <div class="item">
+                        <div 
+                          style="background-color: steelblue; color: white"
+                          onclick="mndot.moreInfo('{{ properties.PIN }}')">
+                          More Info
+                        </div>
+                        <div id="{{ properties.PIN }}-more-info">
+                        </div>
+                    </div>
+
                 </div>
             ]]></template>
         </layer>
