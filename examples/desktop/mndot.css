@@ -39,6 +39,6 @@
 #version {
     background-image: url('logo-mini.png');
     background-repeat: no-repeat;
-    padding-left: 65px;
-    background-position: 0 -3px;
+    padding-left: 21px;
+    background-position: 2px 0px;
 }
