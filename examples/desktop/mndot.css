@@ -42,3 +42,11 @@
     padding-left: 21px;
     background-position: 2px 0px;
 }
+
+.mndot .group-icon {
+    color: #FFC845;
+}
+
+.mndot .favorite-icon {
+    color: #008EAA;
+}
