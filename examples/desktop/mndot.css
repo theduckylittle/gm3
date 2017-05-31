@@ -1,0 +1,44 @@
+/*
+ * CSS for implementing the MnDOT Skin.
+ */
+
+#header {
+    background-color: #003865;
+    height: 87px;
+
+    background-image: url('logo-gorilla.png');
+    background-position: right 0;
+    background-repeat: no-repeat;
+}
+
+#header .logo {
+    padding: 5px;
+}
+
+
+#footer {
+    /* background-color: #008EAA; */
+    background-color: #003865;
+    color: white;
+}
+
+#toolbar {
+    background-color: #78BE21;
+}
+
+#header .tool {
+    color: black;
+}
+
+/* fix the layout for the tabs and the map. */
+#tabs, #map {
+    top: 87px;
+}
+
+/* place the GeoMoose logo in the footer. */
+#version {
+    background-image: url('logo-mini.png');
+    background-repeat: no-repeat;
+    padding-left: 65px;
+    background-position: 0 -3px;
+}
