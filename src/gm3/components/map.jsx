@@ -66,6 +66,7 @@ import olCollection from 'ol/collection';
 import olSelectInteraction from 'ol/interaction/select';
 import olDrawInteraction from 'ol/interaction/draw';
 import olModifyInteraction from 'ol/interaction/modify';
+import olEventConditions from 'ol/events/condition';
 
 
 /* Import the various layer types */
@@ -1038,6 +1039,7 @@ class Map extends Component {
             // switch to the new drawing tool.
             if(type === 'Select') {
                 this.drawTool = new olSelectInteraction({
+                    toggleCondition: olEventConditions.never,
                     layers: [this.olLayers[map_source_name]]
                 });
 
@@ -1151,6 +1153,9 @@ class Map extends Component {
             this.map.removeInteraction(this.drawTool);
             // null out for logic.
             this.drawTool = null;
+
+            // and the current interaction
+            this.currentInteraction = null;
         }
 
         // remove the stop tool from the map
