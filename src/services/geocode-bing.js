@@ -125,3 +125,5 @@ function BingGeocoder(Application, options) {
         Application.dispatchQuery(this.name, selection, fields, []);
     };
 }
+
+if(typeof(module) !== 'undefined') { module.exports = BingGeocoder; }

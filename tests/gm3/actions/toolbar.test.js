@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Dan "Ducky" Little
+ * Copyright (c) 2016-2017 Dan "Ducky" Little
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,27 +22,28 @@
  * SOFTWARE.
  */
 
-/** Zoom To Action
- *
- *  When a user clicks on this it will zoom them to a given
- *  extent. The extent is expected to be in map coordinates.
- *
- */
-function ZoomToAction(Application, options) {
+import { parseToolbar } from 'gm3/actions/toolbar';
 
-    // The extent to which the action should zoom to.
-    this.extent = options.extent ? options.extent : null;
+describe('test the toolbar parser', () => {
 
-    // Called every time the action is started.
-    this.run = function() {
-        if(options.extent) {
-            Application.zoomToExtent(options.extent);
-        } else {
-            alert('An extent was not defined for this action');
-        }
+    const toolbarXml = `
+        <toolbar>
+            <tool name="findme" title="Find Me" type="action"/>
 
-    }
+            <drawer name="dummy-drawer">
+                <tool name="dummy1" title="Dummy Tool 1" type="service"/>
+                <tool name="dummy2" title="Dummy Tool 2" type="service"/>
+            </drawer>
+        </toolbar>`;
 
-}
+    it('parses the xml', () => {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(toolbarXml, "text/xml");
+        const results = parseToolbar(xml.getElementsByTagName('toolbar')[0]);
+    });
 
-if(typeof(module) !== 'undefined') { module.exports = ZoomToAction; }
+    it('should return no actions when the toolbar is undefined', () => {
+        expect(parseToolbar(undefined).length).toBe(0);
+    });
+
+});

@@ -55,7 +55,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import proj4 from 'proj4';
 
-import { getLayerFromPath, getQueryableLayers, getActiveMapSources } from './actions/mapSource';
+import { getLayerFromPath, getVisibleLayers, getQueryableLayers, getActiveMapSources } from './actions/mapSource';
 
 import Mark from 'markup-js';
 
@@ -131,6 +131,9 @@ class Application {
             queryable: false,
             refresh: null,
             layers: [],
+            options: {
+                'always-on': true,
+            },
             params: {},
             // stupid high z-index to ensure results are
             //  on top of everything else.
@@ -139,6 +142,8 @@ class Application {
         this.store.dispatch(mapSourceActions.addLayer('results', {
             name: 'results',
             on: true,
+            label: 'Results',
+            selectable: true,
             style: {
                 'circle-radius': 4,
                 'circle-color': '#ffff00',
@@ -183,6 +188,9 @@ class Application {
             queryable: false,
             refresh: null,
             layers: [],
+            options: {
+                'always-on': true,
+            },
             params: {},
             // stupid high z-index to ensure results are
             //  on top of everything else.
@@ -228,31 +236,9 @@ class Application {
         for(let action of toolbar_actions) {
             this.store.dispatch(action);
         }
-
-        // Add the selection layer,
-        //  this is used to preview the user's selection.
-        /*
-        mapSourceActions.add({
-            type: 'vector',
-            name: 'selection',
-            style: {
-                'circle-radius': 4,
-                'circle-color': '#ffff00',
-                'circle-stroke-color': '#ffff00',
-                'line-color' : '#ffff00',
-                'line-width' : 4,
-                'fill-color' : '#ffff00',
-                'fill-opacity' : 0.25
-            }
-        });
-        */
-
-
     }
 
     loadMapbook(options) {
-        var self = this;
-
         if(options.url) {
             // load mapbook content from a URL,
             //  return the promise in case the user
@@ -267,9 +253,11 @@ class Application {
         } else if(options.content) {
             // this is just straight mapbook xml
             //  TODO: Maybe it needs parsed?!?
-
-            this.populateMapbook(options.content);
-
+            const populate_promise = new Promise((resolve, reject) => {
+                this.populateMapbook(options.content);
+                resolve(options.content);
+            });
+            return populate_promise;
         }
     }
 
@@ -538,19 +526,6 @@ class Application {
         this.changeFeatures('results/results', filter, properties);
     }
 
-    /* Short hand for toggling the highlight of features.
-     */
-    highlightFeatures(filter, on) {
-        const props = {displayClass: on ? 'hot' : ''};
-        this.changeResultFeatures(filter, props);
-    }
-
-    /* Clear highlight features
-     */
-    clearHighlight() {
-        this.highlightFeatures({displayClass: 'hot'}, false);
-    }
-
     /** Clears the UI hint.  Used by applications to indicate
      *  that the previous "hint" has been handled.
      */
@@ -668,6 +643,18 @@ class Application {
         util.addProjDef(proj4, projDef.ref, projDef.def);
     }
 
+    /* Short hand for toggling the highlight of features.
+     */
+    highlightFeatures(filter, on) {
+        const props = {displayClass: on ? 'hot' : ''};
+        this.changeResultFeatures(filter, props);
+    }
+
+    /* Clear highlight features
+     */
+    clearHighlight() {
+        this.highlightFeatures({displayClass: 'hot'}, false);
+    }
 };
 
 

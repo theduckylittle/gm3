@@ -53,6 +53,17 @@ const mapCatalogToProps = function(store) {
     }
 }
 
+class MetadataTool extends Component {
+    render() {
+        return (
+            <a className="metadata" href={ this.props.href } target="_blank"
+                title="View metadata - opens new window">
+                <i className="tool metadata"></i>
+            </a>
+        );
+    }
+}
+
 
 
 export class Catalog extends Component {
@@ -263,6 +274,10 @@ export class Catalog extends Component {
             legend = ( <Legend store={this.props.store} layer={layer}/> );
         }
 
+        let metadata_tool = false;
+        if(layer.metadata_url) {
+            metadata_tool = <MetadataTool href={layer.metadata_url} />
+        }
         // check to see if the layer is on or not.
         const is_on = isLayerOn(this.props.mapSources, layer);
 
@@ -277,6 +292,7 @@ export class Catalog extends Component {
                         {layer.label}
                     </span>
                     {refresh_tool}
+                    {metadata_tool}
                 </div>
                 <div className="layer-tools">
                     {tools}

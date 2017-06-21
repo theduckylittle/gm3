@@ -106,3 +106,5 @@ function IdentifyService(Application, options) {
         return html;
     }
 }
+
+if(typeof(module) !== 'undefined') { module.exports = IdentifyService; }

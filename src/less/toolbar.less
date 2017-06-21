@@ -1,12 +1,14 @@
-button.tool {
-    height: 22px;
-    padding: 0 7px;
-    font-size: 14px;
-    border: none;
-    background: none;
-    &:hover {
-        cursor: pointer;
-        text-decoration: underline;
+.toolbar {
+    .tool {
+        height: 22px;
+        padding: 0 7px;
+        font-size: 14px;
+        border: none;
+        background: none;
+        &:hover {
+            cursor: pointer;
+            text-decoration: underline;
+        }
     }
 }
 
@@ -15,7 +17,7 @@ button.tool {
     display: none;
 }
 
-.tool-fullextent {
+.tool.fullextent {
     .icon {
         .fa;
         &:before {
@@ -24,7 +26,7 @@ button.tool {
     }
 }
 
-.tool-measure {
+.tool.measure {
     .icon {
         .fa;
         &:before {
@@ -33,7 +35,7 @@ button.tool {
     }
 }
 
-.tool-print {
+.tool.print {
     .icon {
         .fa;
         &:before {
@@ -42,7 +44,7 @@ button.tool {
     }
 }
 
-.tool-identify {
+.tool.identify {
     .icon {
         .fa;
         &:before {
@@ -51,7 +53,7 @@ button.tool {
     }
 }
 
-.tool-geocode {
+.tool.geocode {
     .icon {
         .fa;
         &:before {
@@ -60,7 +62,7 @@ button.tool {
     }
 }
 
-.tool-select {
+.tool.select {
     .icon {
         .fa;
         &:before {
@@ -69,7 +71,7 @@ button.tool {
     }
 }
 
-.tool-search {
+.tool.search {
     .icon {
         .fa;
         &:before {
@@ -78,7 +80,7 @@ button.tool {
     }
 }
 
-.tool-findme {
+.tool.findme {
     .icon {
         .fa;
         &:before {
@@ -86,3 +88,75 @@ button.tool {
         }
     }
 }
+
+.tool.drawer {
+    .icon.drawer {
+        .fa;
+        &:before {
+            content: @fa-var-chevron-circle-down;
+        }
+    }
+}
+
+.tool.download {
+    .icon {
+        .fa;
+        &:before {
+            content: @fa-var-download;
+        }
+    }
+}
+
+.tool.minimize {
+    .icon {
+        .fa;
+        &:before {
+            content: @fa-var-window-minimize;
+        }
+    }
+}
+
+.tool.maximize {
+    .icon {
+        .fa;
+        &:before {
+            content: @fa-var-window-maximize;
+        }
+    }
+}
+
+/* CSS needed to supprot the "drawer" functionality
+ * of the toolbar.
+ */
+.toolbar {
+    .drawer {
+        position: relative;
+        display: inline-block;
+    }
+
+    .drawer:hover {
+        .drawer-contents {
+            display: block;
+        }
+    }
+
+    .drawer-contents {
+        display: none;
+        position: absolute;
+        padding: 3px;
+        border: solid 1px black;
+        z-index: 100;
+        background-color: #eee;
+
+        .tool {
+            display: block;
+            white-space: nowrap;
+        }
+
+    }
+
+    .drawer-item {
+        cursor: pointer;
+    }
+}
+
