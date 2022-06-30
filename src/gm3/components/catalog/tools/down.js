@@ -22,16 +22,16 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import UpTool from './up';
+import React from "react";
+import UpTool from "./up";
 
-const DownTool = props => {
-    return <UpTool {...props} />
-}
+const DownTool = (props) => {
+    return <UpTool {...props} />;
+};
 
 DownTool.defaultProps = {
-    tip: 'layer-down-tip',
-    iconClass: 'down',
+    tip: "layer-down-tip",
+    iconClass: "down",
     direction: 1,
 };
 

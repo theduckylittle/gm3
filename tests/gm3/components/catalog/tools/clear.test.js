@@ -22,31 +22,30 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ClearTool } from 'gm3/components/catalog/tools/clear';
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { ClearTool } from "gm3/components/catalog/tools/clear";
 
-describe('Clear tool test', () => {
-    it('renders a clear tool and dispatches an action', () => {
+describe("Clear tool test", () => {
+    it("renders a clear tool and dispatches an action", () => {
         let clicked = false;
 
         const props = {
-            clearFeatures: function() {
+            clearFeatures: function () {
                 clicked = true;
             },
             layer: {
-                src: ['test/test'],
+                src: ["test/test"],
             },
         };
 
         render(<ClearTool {...props} />);
         // this should open the "clear modal"
-        fireEvent.click(screen.getByRole('button'));
+        fireEvent.click(screen.getByRole("button"));
         // now try to click on the clear button
         //  in the modal.
-        fireEvent.click(screen.getByText('Clear'));
+        fireEvent.click(screen.getByText("Clear"));
 
         expect(clicked).toBe(true);
     });
 });
-

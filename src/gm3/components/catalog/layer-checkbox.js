@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import { connect } from 'react-redux';
+import React from "react";
+import { connect } from "react-redux";
 
-import { setLayerVisibility } from '../../actions/mapSource';
-import { isLayerOn } from '../../util';
+import { setLayerVisibility } from "../../actions/mapSource";
+import { isLayerOn } from "../../util";
 
 const getAllChildLayers = (catalog, id, found = []) => {
     const node = catalog[id];
@@ -36,7 +36,9 @@ const getAllChildLayers = (catalog, id, found = []) => {
             for (let i = 0, ii = node.children.length; i < ii; i++) {
                 const child = catalog[node.children[i]];
                 if (child.children) {
-                    found = found.concat(getAllChildLayers(catalog, node.children[i], found));
+                    found = found.concat(
+                        getAllChildLayers(catalog, node.children[i], found)
+                    );
                 } else {
                     found = found.concat([child]);
                 }
@@ -52,7 +54,12 @@ const getAllChildLayers = (catalog, id, found = []) => {
 const getNeighboringLayers = (catalog, layer) => {
     // find the root of the exclusivitiy.
     let root = layer.parent;
-    while (catalog[root] && catalog[root].parent && catalog[catalog[root].parent] && catalog[catalog[root].parent].multiple === false) {
+    while (
+        catalog[root] &&
+        catalog[root].parent &&
+        catalog[catalog[root].parent] &&
+        catalog[catalog[root].parent].multiple === false
+    ) {
         root = catalog[root].parent;
     }
 
@@ -60,8 +67,8 @@ const getNeighboringLayers = (catalog, layer) => {
     //  as a flat array.
     let allSrcs = [];
     getAllChildLayers(catalog, root, [])
-        .filter(node => node.id !== layer.id)
-        .forEach(node => {
+        .filter((node) => node.id !== layer.id)
+        .forEach((node) => {
             allSrcs = allSrcs.concat(node.src);
         });
 
@@ -69,22 +76,24 @@ const getNeighboringLayers = (catalog, layer) => {
     return allSrcs;
 };
 
-
-const LayerCheckbox = props => {
-    let classes = 'checkbox icon';
-    if(props.layer.exclusive === true) {
-        classes = 'radio icon';
+const LayerCheckbox = (props) => {
+    let classes = "checkbox icon";
+    if (props.layer.exclusive === true) {
+        classes = "radio icon";
     }
-    if(props.on) {
-        classes += ' on';
+    if (props.on) {
+        classes += " on";
     }
 
     return (
         <i
-            className={ classes }
+            className={classes}
             onClick={() => {
                 if (props.layer.exclusive === true) {
-                    const neighbors = getNeighboringLayers(props.catalog, props.layer);
+                    const neighbors = getNeighboringLayers(
+                        props.catalog,
+                        props.layer
+                    );
                     props.onChange(!props.on, neighbors);
                 } else {
                     props.onChange(!props.on);
@@ -92,8 +101,7 @@ const LayerCheckbox = props => {
             }}
         />
     );
-}
-
+};
 
 function mapStateProps(state, ownProps) {
     return {
@@ -110,23 +118,37 @@ function mapDispatchProps(dispatch, ownProps) {
                 // do toggling
                 for (let s = 0, ss = layer.src.length; s < ss; s++) {
                     const src = layer.src[s];
-                    dispatch(setLayerVisibility(src.mapSourceName, src.layerName, on));
+                    dispatch(
+                        setLayerVisibility(src.mapSourceName, src.layerName, on)
+                    );
                 }
             } else {
                 // ensure a click means turning on
                 for (let s = 0, ss = layer.src.length; s < ss; s++) {
                     const src = layer.src[s];
-                    dispatch(setLayerVisibility(src.mapSourceName, src.layerName, true));
+                    dispatch(
+                        setLayerVisibility(
+                            src.mapSourceName,
+                            src.layerName,
+                            true
+                        )
+                    );
                 }
                 // turn off all the other sources for
                 //  every other layer in the group
                 for (let n = 0, nn = neighbors.length; n < nn; n++) {
                     const src = neighbors[n];
-                    dispatch(setLayerVisibility(src.mapSourceName, src.layerName, false));
+                    dispatch(
+                        setLayerVisibility(
+                            src.mapSourceName,
+                            src.layerName,
+                            false
+                        )
+                    );
                 }
             }
         },
-    }
+    };
 }
 
 export default connect(mapStateProps, mapDispatchProps)(LayerCheckbox);

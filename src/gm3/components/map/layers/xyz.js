@@ -26,24 +26,24 @@
  *
  */
 
-import XYZSource from 'ol/source/XYZ';
-import TileLayer from 'ol/layer/Tile';
+import XYZSource from "ol/source/XYZ";
+import TileLayer from "ol/layer/Tile";
 
 /** Create the parameters for a XYZ layer.
  *
  */
 function defineSource(mapSource) {
     let cx_origin = null;
-    if(mapSource.params['cross-origin']) {
-        cx_origin = mapSource.params['cross-origin'];
-    } else if (mapSource.urls[0].indexOf('http') === 0) {
-        cx_origin = 'anonymous';
+    if (mapSource.params["cross-origin"]) {
+        cx_origin = mapSource.params["cross-origin"];
+    } else if (mapSource.urls[0].indexOf("http") === 0) {
+        cx_origin = "anonymous";
     }
 
     return {
         crossOrigin: cx_origin,
-        urls: mapSource.urls
-    }
+        urls: mapSource.urls,
+    };
 }
 
 /** Return an OpenLayers Layer for the XYZ source.
@@ -70,18 +70,17 @@ export function updateLayer(map, layer, mapSource) {
 
     // check to see if the list of URLs has changed.
     const urls = src.getUrls();
-    let update_urls = false
-    if(urls.length !== defn.urls.length) {
+    let update_urls = false;
+    if (urls.length !== defn.urls.length) {
         update_urls = true;
     } else {
-        for(const url of urls) {
-            if(defn.urls.indexOf(url) < 0) {
+        for (const url of urls) {
+            if (defn.urls.indexOf(url) < 0) {
                 update_urls = true;
             }
         }
     }
-    if(update_urls) {
+    if (update_urls) {
         src.setUrls(defn.urls);
     }
 }
-

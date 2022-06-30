@@ -22,15 +22,14 @@
  * SOFTWARE.
  */
 
+import React from "react";
+import { connect } from "react-redux";
 
-import React from 'react';
-import { connect } from 'react-redux';
+import { clearFeatures } from "../../../actions/mapSource";
 
-import { clearFeatures } from '../../../actions/mapSource';
+import ModalDialog from "../../modal";
 
-import ModalDialog from '../../modal';
-
-import { Tool } from '../tools';
+import { Tool } from "../tools";
 
 /** Clears features from a vector layer.
  *
@@ -46,32 +45,32 @@ export class ClearTool extends React.Component {
     render() {
         return (
             <Tool
-                tip='clear-features-tip'
-                iconClass='clear'
+                tip="clear-features-tip"
+                iconClass="clear"
                 onClick={() => {
-                    this.setState({open: true});
+                    this.setState({ open: true });
                 }}
             >
-                { !this.state.open ? false :
-                    (
-                        <ModalDialog
-                            title='Clear features'
-                            open={this.state.open}
-                            onClose={() => {
-                                this.setState({open: false});
+                {!this.state.open ? (
+                    false
+                ) : (
+                    <ModalDialog
+                        title="Clear features"
+                        open={this.state.open}
+                        onClose={() => {
+                            this.setState({ open: false });
 
-                                const src = this.props.layer.src[0];
-                                this.props.clearFeatures(src.mapSourceName);
-                            }}
-                            options={[
-                                {label: 'Cancel', value: 'dismiss'},
-                                {label: 'Clear', value: 'clear'},
-                            ]}
-                        >
-                            Remove all features from selected layer?
-                        </ModalDialog>
-                    )
-                }
+                            const src = this.props.layer.src[0];
+                            this.props.clearFeatures(src.mapSourceName);
+                        }}
+                        options={[
+                            { label: "Cancel", value: "dismiss" },
+                            { label: "Clear", value: "clear" },
+                        ]}
+                    >
+                        Remove all features from selected layer?
+                    </ModalDialog>
+                )}
             </Tool>
         );
     }

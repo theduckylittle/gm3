@@ -22,16 +22,12 @@
  * SOFTWARE.
  */
 
+import * as WmsLayer from "gm3/components/map/layers/wms";
 
-import * as WmsLayer from 'gm3/components/map/layers/wms';
-
-describe('WMS Layer Tests', function() {
-
+describe("WMS Layer Tests", function () {
     it('tests that two "?" marks are not included in the url', () => {
         const mapSource = {
-            urls: [
-                'http://localhost/wms?'
-            ],
+            urls: ["http://localhost/wms?"],
             params: {},
         };
 
@@ -39,8 +35,8 @@ describe('WMS Layer Tests', function() {
             resolution: 30,
         };
 
-        const legend_def = WmsLayer.getLegend(mapSource, mapView, 'test');
+        const legend_def = WmsLayer.getLegend(mapSource, mapView, "test");
 
-        expect(legend_def.images[0].indexOf('??')).toBeLessThan(0);
+        expect(legend_def.images[0].indexOf("??")).toBeLessThan(0);
     });
 });

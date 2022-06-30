@@ -22,49 +22,54 @@
  * SOFTWARE.
  */
 
+import { getVisibleLayers, setLayerVisibility } from "../actions/mapSource";
+import { zoomToExtent, setView } from "../actions/map";
+import { toLonLat, fromLonLat, transformExtent } from "ol/proj";
+import olView from "ol/View";
 
-import { getVisibleLayers, setLayerVisibility } from '../actions/mapSource';
-import { zoomToExtent, setView } from '../actions/map';
-import { toLonLat, fromLonLat, transformExtent } from 'ol/proj';
-import olView from 'ol/View';
+import {
+    getMapSourceName,
+    getLayerName,
+    parseBoolean,
+    parseHash,
+} from "../util";
 
-import { getMapSourceName, getLayerName, parseBoolean, parseHash } from '../util';
-
-export const JOIN_SYMBOL = ';';
+export const JOIN_SYMBOL = ";";
 
 export const formatLocation = (mapState, mapSize, format) => {
-    if (format === 'zxy' && mapState.resolution && mapState.center) {
+    if (format === "zxy" && mapState.resolution && mapState.center) {
         return [
             mapState.resolution.toFixed(4),
             mapState.center[0].toFixed(2),
             mapState.center[1].toFixed(2),
         ].join(JOIN_SYMBOL);
-    } else if (format === 'bbox' && mapState.resolution && mapState.center) {
+    } else if (format === "bbox" && mapState.resolution && mapState.center) {
         const view = new olView({
             center: mapState.center,
             resolution: mapState.resolution,
         });
         const extent = view.calculateExtent([mapSize.width, mapSize.height]);
-        return transformExtent(extent, 'EPSG:3857', 'EPSG:4326')
-            .map(v => v.toFixed(5)).join(JOIN_SYMBOL);
-    } else if (format === 'lonlat' && (mapState.zoom || mapState.resolution) && mapState.center) {
+        return transformExtent(extent, "EPSG:3857", "EPSG:4326")
+            .map((v) => v.toFixed(5))
+            .join(JOIN_SYMBOL);
+    } else if (
+        format === "lonlat" &&
+        (mapState.zoom || mapState.resolution) &&
+        mapState.center
+    ) {
         const ll = toLonLat(mapState.center);
         // handle the case where the zoom value has not been hydrated
         //  in the state.
         let zoom = mapState.zoom;
         if (!zoom) {
-            zoom = (new olView()).getZoomForResolution(mapState.resolution);
+            zoom = new olView().getZoomForResolution(mapState.resolution);
         }
 
-        return [
-            zoom.toFixed(2),
-            ll[0].toFixed(6),
-            ll[1].toFixed(6),
-        ].join('/');
+        return [zoom.toFixed(2), ll[0].toFixed(6), ll[1].toFixed(6)].join("/");
     }
 };
 
-export const parseLocation = loc => {
+export const parseLocation = (loc) => {
     // if the first character is a comma,
     //   things have gone wrong.
     if (loc.indexOf(JOIN_SYMBOL) > 0) {
@@ -87,11 +92,11 @@ export const parseLocation = loc => {
                 bbox: parsed,
             };
         }
-    // Yes, the difference between ground coordinates
-    //  and EPSG:4326 coordinates is the use of slashes.
-    } else if (loc.indexOf('/') > 0) {
+        // Yes, the difference between ground coordinates
+        //  and EPSG:4326 coordinates is the use of slashes.
+    } else if (loc.indexOf("/") > 0) {
         // Z-level, Lon, Lat
-        const locParts = loc.split('/');
+        const locParts = loc.split("/");
         let parsed = [];
         try {
             parsed = locParts.map(parseFloat);
@@ -103,7 +108,7 @@ export const parseLocation = loc => {
             return {
                 zoom: parsed[0],
                 center,
-            }
+            };
         }
     }
 
@@ -111,40 +116,36 @@ export const parseLocation = loc => {
     return null;
 };
 
-
 /* Test to see if a map-source is "always-on"
  *
  */
 const isAlwaysOn = (mapSource) => {
-    if(mapSource && mapSource.options) {
-        const always_on = mapSource.options['always-on'];
-        return (always_on === true || parseBoolean(always_on));
+    if (mapSource && mapSource.options) {
+        const always_on = mapSource.options["always-on"];
+        return always_on === true || parseBoolean(always_on);
     }
     return false;
 };
 
-
 /* Track the layer changes.
  *
  */
-const trackLayers = mapSources => {
+const trackLayers = (mapSources) => {
     const visible_layers = getVisibleLayers(mapSources);
     const trackable_layers = [];
-    for(const layer of visible_layers) {
+    for (const layer of visible_layers) {
         const ms_name = getMapSourceName(layer);
-        if(!isAlwaysOn(mapSources[ms_name])) {
+        if (!isAlwaysOn(mapSources[ms_name])) {
             trackable_layers.push(layer);
         }
     }
     return trackable_layers;
 };
 
-
 /** Class for tracking the state of the user in localStorage
  *
  */
 export default class HashTracker {
-
     constructor(store, options = {}) {
         this.tracking = false;
 
@@ -156,15 +157,17 @@ export default class HashTracker {
         this.trackWindowChanges = this.trackWindowChanges.bind(this);
 
         // when the store changes, track those changes.
-        store.subscribe(() => { this.track(); });
+        store.subscribe(() => {
+            this.track();
+        });
 
         // track the last hash, don't update the window
         //  if it need not be updated.
-        this.lastHash = '';
+        this.lastHash = "";
 
         // localize the config options.
         this.config = {
-            locationFormat: 'zxy',
+            locationFormat: "zxy",
             ...options,
         };
 
@@ -175,7 +178,7 @@ export default class HashTracker {
      */
     startTracking() {
         this.tracking = true;
-        window.addEventListener('hashchange', this.trackWindowChanges, false);
+        window.addEventListener("hashchange", this.trackWindowChanges, false);
     }
 
     /** turn off tracking.
@@ -197,28 +200,37 @@ export default class HashTracker {
         // layers to turn on
         const turn_on = [];
 
-        for(let i = 0, ii = layers.length; i < ii; i++) {
+        for (let i = 0, ii = layers.length; i < ii; i++) {
             // the layer from the URL is not "visible"
-            if(visible_layers.indexOf(layers[i]) < 0) {
+            if (visible_layers.indexOf(layers[i]) < 0) {
                 turn_on.push(layers[i]);
             }
         }
 
-        for(let i = 0, ii = visible_layers.length; i < ii; i++) {
+        for (let i = 0, ii = visible_layers.length; i < ii; i++) {
             const layer = visible_layers[i];
             const ms_name = getMapSourceName(layer);
-            if(!isAlwaysOn(map_sources[ms_name]) &&
+            if (
+                !isAlwaysOn(map_sources[ms_name]) &&
                 layers.indexOf(visible_layers[i]) < 0
             ) {
                 this.store.dispatch(
-                    setLayerVisibility(getMapSourceName(layer), getLayerName(layer), false)
+                    setLayerVisibility(
+                        getMapSourceName(layer),
+                        getLayerName(layer),
+                        false
+                    )
                 );
             }
         }
 
-        turn_on.forEach(layer =>
+        turn_on.forEach((layer) =>
             this.store.dispatch(
-                setLayerVisibility(getMapSourceName(layer), getLayerName(layer), true)
+                setLayerVisibility(
+                    getMapSourceName(layer),
+                    getLayerName(layer),
+                    true
+                )
             )
         );
     }
@@ -232,7 +244,7 @@ export default class HashTracker {
         //  not parseable.
         if (next) {
             if (next.bbox) {
-                this.store.dispatch(zoomToExtent(next.bbox, 'EPSG:4326'));
+                this.store.dispatch(zoomToExtent(next.bbox, "EPSG:4326"));
             } else {
                 this.store.dispatch(setView(next));
             }
@@ -245,11 +257,11 @@ export default class HashTracker {
     restore() {
         const parsed = parseHash();
 
-        if(parsed.query) {
-            if(parsed.query.loc) {
+        if (parsed.query) {
+            if (parsed.query.loc) {
                 this.restoreLocation(parsed.query.loc);
             }
-            if(parsed.query.on) {
+            if (parsed.query.on) {
                 this.restoreLayers(parsed.query.on);
             }
         }
@@ -258,32 +270,40 @@ export default class HashTracker {
     /* Track the window changes.
      */
     trackWindowChanges() {
-        if(window.location.hash !== ('#' + this.lastHash)) {
+        if (window.location.hash !== "#" + this.lastHash) {
             this.restore();
         }
     }
 
     track() {
         // when tracking is not active, just return false.
-        if(this.tracking) {
-            let new_hash = '';
+        if (this.tracking) {
+            let new_hash = "";
 
             const state = this.store.getState();
             const mapState = state.map;
             const mapSources = state.mapSources;
 
-            if (mapState !== this.lastState.map || mapSources !== this.lastState.mapSources) {
+            if (
+                mapState !== this.lastState.map ||
+                mapSources !== this.lastState.mapSources
+            ) {
                 this.lastState = {
                     map: mapState,
                     mapSources,
                 };
 
                 // put the layers in the hash
-                new_hash += 'on=' + trackLayers(mapSources).join(JOIN_SYMBOL);
+                new_hash += "on=" + trackLayers(mapSources).join(JOIN_SYMBOL);
 
                 // get the locaiton in htere.
-                new_hash += '&loc=' +
-                    formatLocation(mapState, state.cursor.size, this.config.locationFormat);
+                new_hash +=
+                    "&loc=" +
+                    formatLocation(
+                        mapState,
+                        state.cursor.size,
+                        this.config.locationFormat
+                    );
 
                 if (this.lastHash !== new_hash) {
                     // update the hash first so we don't trigger

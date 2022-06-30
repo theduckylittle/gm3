@@ -26,8 +26,8 @@
  *
  */
 
-import TileLayer from 'ol/layer/Tile';
-import BingSource from 'ol/source/BingMaps';
+import TileLayer from "ol/layer/Tile";
+import BingSource from "ol/source/BingMaps";
 
 /** Create the parameters for a Bing Services layer.
  *
@@ -35,27 +35,28 @@ import BingSource from 'ol/source/BingMaps';
 function defineSource(mapSource) {
     //  If both roads and aerials are specified,
     //  "AerialWithLabels" is requested.
-    let aerials_on = false, roads_on = false;
-    for(const layer of mapSource.layers) {
-        if(layer.on === true) {
-            if(layer.name === 'aerials') {
+    let aerials_on = false,
+        roads_on = false;
+    for (const layer of mapSource.layers) {
+        if (layer.on === true) {
+            if (layer.name === "aerials") {
                 aerials_on = true;
-            } else if(layer.name === 'roads') {
+            } else if (layer.name === "roads") {
                 roads_on = true;
             }
         }
     }
 
-    let image_style = 'Road';
-    if(aerials_on && roads_on) {
-        image_style = 'AerialWithLabels';
-    } else if(aerials_on) {
-        image_style = 'Aerial';
-    } else if(roads_on) {
-        image_style = 'Road';
+    let image_style = "Road";
+    if (aerials_on && roads_on) {
+        image_style = "AerialWithLabels";
+    } else if (aerials_on) {
+        image_style = "Aerial";
+    } else if (roads_on) {
+        image_style = "Road";
     } else {
-        for(const layer of mapSource.layers) {
-            if(layer.on === true) {
+        for (const layer of mapSource.layers) {
+            if (layer.on === true) {
                 image_style = layer.name;
             }
         }
@@ -63,8 +64,8 @@ function defineSource(mapSource) {
 
     return {
         key: mapSource.params.key,
-        imagerySet: image_style
-    }
+        imagerySet: image_style,
+    };
 }
 
 /** Return an OpenLayers Layer for the Bing Services source.
@@ -89,7 +90,7 @@ export function updateLayer(map, layer, mapSource) {
     // get the new definition
     const defn = defineSource(mapSource);
 
-    if(defn.imagerySet !== src.getImagerySet()) {
+    if (defn.imagerySet !== src.getImagerySet()) {
         layer.setSource(new BingSource(defn));
     }
 }

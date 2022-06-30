@@ -22,13 +22,12 @@
  * SOFTWARE.
  */
 
-import { PRINT } from '../actionTypes';
-
+import { PRINT } from "../actionTypes";
 
 const default_state = {
-    state: 'printed',
+    state: "printed",
     // populated with a png or jpeg base64 string,
-    printData: '',
+    printData: "",
     request: null,
 };
 
@@ -38,25 +37,25 @@ const default_state = {
  *
  */
 export default function printReducer(state = default_state, action) {
-    switch(action.type) {
+    switch (action.type) {
         // requests come in specifying the size, center, and resolution.
         case PRINT.REQUEST:
             return Object.assign({}, state, {
-                state: 'printing',
-                request: action.request
+                state: "printing",
+                request: action.request,
             });
         case PRINT.IMAGE:
             return Object.assign({}, state, {
-                state: 'printing',
-                printData: action.data
+                state: "printing",
+                printData: action.data,
             });
         case PRINT.FINISHED:
             return Object.assign({}, state, {
-                state: 'printed',
-                data: '',
-                request: null
+                state: "printed",
+                data: "",
+                request: null,
             });
         default:
             return state;
     }
-};
+}

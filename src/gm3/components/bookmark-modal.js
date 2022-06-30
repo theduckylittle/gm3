@@ -21,25 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import React from 'react';
-import {connect} from 'react-redux';
-import {showModal} from '../actions/ui';
+import React from "react";
+import { connect } from "react-redux";
+import { showModal } from "../actions/ui";
 
-import Modal from './modal';
+import Modal from "./modal";
 
 class BookmarkModal extends Modal {
     renderBody() {
         return (
             <div>
-                <label>This url can be copied and pasted to make a bookmark:</label>
-                <a href={'' + document.location} target = "_blank" rel="noopener noreferrer"> Map Link</a>
+                <label>
+                    This url can be copied and pasted to make a bookmark:
+                </label>
+                <a
+                    href={"" + document.location}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {" "}
+                    Map Link
+                </a>
                 <textarea
                     style={{
-                        width: '100%',
-                        height: '200px',
-                        fontFamily: 'mono',
+                        width: "100%",
+                        height: "200px",
+                        fontFamily: "mono",
                     }}
-                    defaultValue={'' + document.location}
+                    defaultValue={"" + document.location}
                 />
             </div>
         );
@@ -47,20 +56,22 @@ class BookmarkModal extends Modal {
 }
 
 BookmarkModal.defaultProps = {
-    title: 'Bookmark',
-    options: [{
-        value: 'close',
-        label: 'Close',
-    }],
+    title: "Bookmark",
+    options: [
+        {
+            value: "close",
+            label: "Close",
+        },
+    ],
 };
 
-const mapStateToProps = state => ({
-    open: state.ui.modal === 'bookmark',
+const mapStateToProps = (state) => ({
+    open: state.ui.modal === "bookmark",
 });
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
     onClose: () => {
-        dispatch(showModal(''));
+        dispatch(showModal(""));
     },
 });
 

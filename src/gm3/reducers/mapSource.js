@@ -26,9 +26,9 @@
  *
  */
 
-import uuid from 'uuid';
-import { MAPSOURCE } from '../actionTypes';
-import { changeFeatures, filterFeatures } from '../util';
+import uuid from "uuid";
+import { MAPSOURCE } from "../actionTypes";
+import { changeFeatures, filterFeatures } from "../util";
 
 /** Use this to toggle boolean values on a layer.
  *
@@ -42,16 +42,20 @@ import { changeFeatures, filterFeatures } from '../util';
 function setLayerAttribute(state, action, attr) {
     // make a copy of the layers list
     const layers = [];
-    if(!state[action.mapSourceName]) {
+    if (!state[action.mapSourceName]) {
         // no state changes if we can't find the mapsource.
         return state;
     }
 
-    for(let i = 0, ii = state[action.mapSourceName].layers.length; i < ii; i++) {
+    for (
+        let i = 0, ii = state[action.mapSourceName].layers.length;
+        i < ii;
+        i++
+    ) {
         // copy each layer and update the matching one.
         const layer = Object.assign({}, state[action.mapSourceName].layers[i]);
-        if(layer.name === action.layerName) {
-            if(action.type === MAPSOURCE.SET_TEMPLATE) {
+        if (layer.name === action.layerName) {
+            if (action.type === MAPSOURCE.SET_TEMPLATE) {
                 layer.templates[action.name] = action.template;
             } else {
                 layer[attr] = action[attr];
@@ -61,7 +65,7 @@ function setLayerAttribute(state, action, attr) {
     }
 
     const ms = Object.assign({}, state[action.mapSourceName], {
-        layers
+        layers,
     });
 
     const mix = {};
@@ -85,20 +89,25 @@ function changeMapSourceFeatures(state, action) {
     let features = [];
     let version = 1;
 
-    if(map_source.features) {
+    if (map_source.features) {
         features = map_source.features.slice();
         version = map_source.featuresVersion;
     }
 
-    const id_prop = '_uuid';
+    const id_prop = "_uuid";
 
-    switch(action.type) {
+    switch (action.type) {
         case MAPSOURCE.ADD_FEATURES:
             // add an ID to the features
-            for(let x = 0, xx = action.features.length; !action.copy && x < xx; x++) {
+            for (
+                let x = 0, xx = action.features.length;
+                !action.copy && x < xx;
+                x++
+            ) {
                 const id_mixin = {};
                 id_mixin[id_prop] = uuid();
-                action.features[x].properties = Object.assign({},
+                action.features[x].properties = Object.assign(
+                    {},
                     action.features[x].properties,
                     id_mixin
                 );
@@ -113,8 +122,8 @@ function changeMapSourceFeatures(state, action) {
         // delete a specific feature
         case MAPSOURCE.REMOVE_FEATURE:
             features = [];
-            for(const f of map_source.features) {
-                if(f.properties[id_prop] !== action.id) {
+            for (const f of map_source.features) {
+                if (f.properties[id_prop] !== action.id) {
                     features.push(f);
                 }
             }
@@ -125,21 +134,30 @@ function changeMapSourceFeatures(state, action) {
             version += 1;
             break;
         case MAPSOURCE.CHANGE_FEATURES:
-            features = changeFeatures(map_source.features, action.filter, action.properties);
+            features = changeFeatures(
+                map_source.features,
+                action.filter,
+                action.properties
+            );
             version += 1;
             break;
         case MAPSOURCE.MODIFY_GEOMETRY:
-            features = changeFeatures(map_source.features, {'_uuid': action.id}, null, action.geometry);
+            features = changeFeatures(
+                map_source.features,
+                { _uuid: action.id },
+                null,
+                action.geometry
+            );
             version += 1;
             break;
         default:
-            // do nothing.
+        // do nothing.
     }
 
     const update_obj = {};
     update_obj[action.mapSourceName] = Object.assign(map_source, {
         features: features,
-        featuresVersion: version
+        featuresVersion: version,
     });
 
     return update_obj;
@@ -149,68 +167,83 @@ export const handleReload = (state, action) => {
     const mixin = {};
     const mapSource = state[action.mapSourceName];
     mixin[action.mapSourceName] = Object.assign({}, mapSource, {
-        featuresVersion: mapSource.featuresVersion ? mapSource.featuresVersion + 1 : 1,
+        featuresVersion: mapSource.featuresVersion
+            ? mapSource.featuresVersion + 1
+            : 1,
         params: Object.assign({}, mapSource.params, {
-            _ck: '.' + (new Date()).getTime(),
+            _ck: "." + new Date().getTime(),
         }),
     });
     return Object.assign({}, state, mixin);
-}
+};
 
 export default function mapSource(state = [], action) {
     const new_elem = {};
 
-    switch(action.type) {
+    switch (action.type) {
         case MAPSOURCE.SET_ATTRIBUTE:
             return setLayerAttribute(state, action);
         case MAPSOURCE.LAYER_VIS:
-            return setLayerAttribute(state, action, 'on');
+            return setLayerAttribute(state, action, "on");
         case MAPSOURCE.LAYER_FAVORITE:
-            return setLayerAttribute(state, action, 'favorite');
+            return setLayerAttribute(state, action, "favorite");
         case MAPSOURCE.SET_TEMPLATE:
             return setLayerAttribute(state, action);
         case MAPSOURCE.ADD:
-            new_elem[action.mapSource.name] = Object.assign({
-                layers: [],
-                params: {},
-                printable: true,
-                queryable: false
-            }, action.mapSource);
+            new_elem[action.mapSource.name] = Object.assign(
+                {
+                    layers: [],
+                    params: {},
+                    printable: true,
+                    queryable: false,
+                },
+                action.mapSource
+            );
             return Object.assign({}, state, new_elem);
         case MAPSOURCE.SET_Z:
             const new_z_ms = {};
-            new_z_ms[action.mapSourceName] = Object.assign({},
+            new_z_ms[action.mapSourceName] = Object.assign(
+                {},
                 state[action.mapSourceName],
-                {zIndex: action.zIndex}
+                { zIndex: action.zIndex }
             );
             return Object.assign({}, state, new_z_ms);
         case MAPSOURCE.SET_OPACITY:
             const new_opacity_ms = {};
-            new_opacity_ms[action.mapSourceName] = Object.assign({},
+            new_opacity_ms[action.mapSourceName] = Object.assign(
+                {},
                 state[action.mapSourceName],
-                {opacity: action.opacity},
+                { opacity: action.opacity }
             );
             return Object.assign({}, state, new_opacity_ms);
         case MAPSOURCE.ADD_LAYER:
-            if(state[action.mapSourceName]) {
+            if (state[action.mapSourceName]) {
                 const ms = {};
-                ms[action.mapSourceName] = Object.assign({}, state[action.mapSourceName], {
-                    layers: [
-                        ...state[action.mapSourceName].layers,
-                        action.layer
-                    ]
-                });
+                ms[action.mapSourceName] = Object.assign(
+                    {},
+                    state[action.mapSourceName],
+                    {
+                        layers: [
+                            ...state[action.mapSourceName].layers,
+                            action.layer,
+                        ],
+                    }
+                );
 
                 return Object.assign({}, state, ms);
             }
 
             return state;
         case MAPSOURCE.REFRESH:
-            if(state[action.mapSourceName]) {
+            if (state[action.mapSourceName]) {
                 const ms = {};
-                ms[action.mapSourceName] = Object.assign({}, state[action.mapSourceName], {
-                    refresh: action.refresh
-                });
+                ms[action.mapSourceName] = Object.assign(
+                    {},
+                    state[action.mapSourceName],
+                    {
+                        refresh: action.refresh,
+                    }
+                );
                 return Object.assign({}, state, ms);
             }
             return state;
@@ -220,7 +253,11 @@ export default function mapSource(state = [], action) {
         case MAPSOURCE.REMOVE_FEATURES:
         case MAPSOURCE.CHANGE_FEATURES:
         case MAPSOURCE.MODIFY_GEOMETRY:
-            return Object.assign({}, state, changeMapSourceFeatures(state, action));
+            return Object.assign(
+                {},
+                state,
+                changeMapSourceFeatures(state, action)
+            );
         case MAPSOURCE.RELOAD:
             return handleReload(state, action);
         default:

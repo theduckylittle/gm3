@@ -21,23 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 
-import SelectInput from './select';
+import SelectInput from "./select";
 
-import { getQueryableLayers, getLayerByPath } from '../../actions/mapSource';
+import { getQueryableLayers, getLayerByPath } from "../../actions/mapSource";
 
 // special list of layers that should never float to the top.
-const TO_THE_BOTTOM = [
-    'sketch/default',
-];
+const TO_THE_BOTTOM = ["sketch/default"];
 
 export class LayersListInput extends SelectInput {
     getOptions() {
         const options = [];
-        for(let i = 0, ii = this.props.layers.length; i < ii; i++) {
-            const layer = getLayerByPath(this.props.mapSources, this.props.layers[i]);
+        for (let i = 0, ii = this.props.layers.length; i < ii; i++) {
+            const layer = getLayerByPath(
+                this.props.mapSources,
+                this.props.layers[i]
+            );
             options.push({
                 value: this.props.layers[i],
                 label: layer.label,
@@ -65,9 +66,14 @@ LayersListInput.defaultProps = {
 };
 
 function mapState(state, ownProps) {
-    const filter_layers = (ownProps.filter && ownProps.filter.layers) ? ownProps.filter.layers : null;
+    const filter_layers =
+        ownProps.filter && ownProps.filter.layers
+            ? ownProps.filter.layers
+            : null;
     return {
-        layers: filter_layers ? filter_layers : getQueryableLayers(state.mapSources, ownProps.field.filter),
+        layers: filter_layers
+            ? filter_layers
+            : getQueryableLayers(state.mapSources, ownProps.field.filter),
         mapSources: state.mapSources,
     };
 }

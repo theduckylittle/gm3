@@ -22,38 +22,37 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import { connect } from 'react-redux';
-import { withTranslation, useTranslation } from 'react-i18next';
+import React from "react";
+import { connect } from "react-redux";
+import { withTranslation, useTranslation } from "react-i18next";
 
-import {unparse as writeCsv} from 'papaparse';
-import Mark from 'markup-js';
-import FileSaver from 'file-saver';
+import { unparse as writeCsv } from "papaparse";
+import Mark from "markup-js";
+import FileSaver from "file-saver";
 
-import {FORMAT_OPTIONS, matchFeatures} from '../util';
+import { FORMAT_OPTIONS, matchFeatures } from "../util";
 
-import { addFilter, removeFilter } from '../actions/map';
-import { getLayerFromPath } from '../actions/mapSource';
+import { addFilter, removeFilter } from "../actions/map";
+import { getLayerFromPath } from "../actions/mapSource";
 
-import ModalDialog from './modal';
+import ModalDialog from "./modal";
 
-const Label = ({l}) => {
-    const {t} = useTranslation();
-    return (<label>{t(l)}</label>);
+const Label = ({ l }) => {
+    const { t } = useTranslation();
+    return <label>{t(l)}</label>;
 };
-
 
 class FilterModal extends ModalDialog {
     constructor(props) {
         super(props);
         this.onChange = this.onChange.bind(this);
         this.state = {
-            value: ''
+            value: "",
         };
     }
 
     onChange(evt) {
-        this.setState({value: evt.target.value});
+        this.setState({ value: evt.target.value });
     }
 
     setFilter() {
@@ -62,41 +61,45 @@ class FilterModal extends ModalDialog {
 
         const new_filters = [];
 
-        if(this.props.column.filter.type === 'list') {
+        if (this.props.column.filter.type === "list") {
             // undefined causes challenges for the filter generator
             //  this normalizes querying for an undefined value.
             if (value.indexOf(undefined) >= 0) {
-                let nextFilter = ['==', ['coalesce', ['get', property], ''], ''];
+                let nextFilter = [
+                    "==",
+                    ["coalesce", ["get", property], ""],
+                    "",
+                ];
                 if (value.length > 1) {
                     nextFilter = [
-                        'any',
+                        "any",
                         nextFilter,
-                        ['in', ['get', property]].concat(value.filter(x => x !== undefined)),
+                        ["in", ["get", property]].concat(
+                            value.filter((x) => x !== undefined)
+                        ),
                     ];
                 }
                 new_filters.push(nextFilter);
             } else {
-                new_filters.push(['in', property].concat(value));
+                new_filters.push(["in", property].concat(value));
             }
-        } else if(this.props.column.filter.type === 'range') {
-            if(this.state.min !== '') {
-                new_filters.push(['>=', property, this.state.min]);
+        } else if (this.props.column.filter.type === "range") {
+            if (this.state.min !== "") {
+                new_filters.push([">=", property, this.state.min]);
             }
-            if(this.state.max !== '') {
-                new_filters.push(['<=', property, this.state.max]);
+            if (this.state.max !== "") {
+                new_filters.push(["<=", property, this.state.max]);
             }
         } else {
             // straight equals...
-            new_filters.push(['==', property, value]);
+            new_filters.push(["==", property, value]);
         }
 
         // remove the filters from the property
-        this.props.store.dispatch(
-            removeFilter(this.props.queryId, property)
-        );
+        this.props.store.dispatch(removeFilter(this.props.queryId, property));
 
         // add the new filters.
-        for(const new_filter of new_filters) {
+        for (const new_filter of new_filters) {
             // add/update this filter.
             this.props.store.dispatch(
                 addFilter(this.props.queryId, new_filter)
@@ -105,23 +108,23 @@ class FilterModal extends ModalDialog {
     }
 
     close(status) {
-        if(status === 'set') {
+        if (status === "set") {
             this.setFilter();
-        } else if (status === 'clear') {
+        } else if (status === "clear") {
             // remove the filter from the query
             this.props.store.dispatch(
                 removeFilter(this.props.queryId, this.props.column.property)
             );
-            if(this.props.column.filter.type === 'list') {
+            if (this.props.column.filter.type === "list") {
                 const all_values = [];
-                for(const opt of this.filter_values) {
+                for (const opt of this.filter_values) {
                     all_values.push(opt.value);
                 }
-                this.setState({value: all_values});
-            } else if(this.props.column.filter.type === 'range') {
-                this.setState({min: '', max: ''});
+                this.setState({ value: all_values });
+            } else if (this.props.column.filter.type === "range") {
+                this.setState({ min: "", max: "" });
             } else {
-                this.setState({value: ''});
+                this.setState({ value: "" });
             }
         }
 
@@ -129,26 +132,30 @@ class FilterModal extends ModalDialog {
     }
 
     getTitle() {
-        return 'Set filter for ' + this.props.column.title;
+        return "Set filter for " + this.props.column.title;
     }
 
     getOptions() {
         return [
-            {label: 'Cancel', value: 'dismiss'},
-            {label: 'Clear', value: 'clear'},
-            {label: 'Set', value: 'set'},
+            { label: "Cancel", value: "dismiss" },
+            { label: "Clear", value: "clear" },
+            { label: "Set", value: "set" },
         ];
-    };
+    }
 
     renderBody() {
         return (
             <div>
-                <Label l="label-value"/> <input onChange={ this.onChange } value={ this.state.value } ref='input'/>
+                <Label l="label-value" />{" "}
+                <input
+                    onChange={this.onChange}
+                    value={this.state.value}
+                    ref="input"
+                />
             </div>
         );
     }
 }
-
 
 /* Creates a settings Modal for lists of values.
  *
@@ -156,7 +163,6 @@ class FilterModal extends ModalDialog {
  *
  */
 class ListFilterModal extends FilterModal {
-
     constructor(props) {
         super(props);
 
@@ -188,10 +194,9 @@ class ListFilterModal extends FilterModal {
     }
 
     renderBody() {
-        const isChecked = value =>
-            this.state.selectedValues[value] === true;
+        const isChecked = (value) => this.state.selectedValues[value] === true;
 
-        const toggleSelected = value => {
+        const toggleSelected = (value) => {
             const nextSelected = {
                 ...this.state.selectedValues,
                 [value]: !this.state.selectedValues[value],
@@ -215,16 +220,18 @@ class ListFilterModal extends FilterModal {
             <div>
                 {this.state.orderedValues.map((value, valueIdx) => (
                     <div
-                        key={value ? value : 'empty'}
+                        key={value ? value : "empty"}
                         className="checkbox"
                         onClick={() => {
                             toggleSelected(valueIdx);
                         }}
                     >
                         <i
-                            className={`icon checkbox ${isChecked(valueIdx) ? 'on' : ''}`}
+                            className={`icon checkbox ${
+                                isChecked(valueIdx) ? "on" : ""
+                            }`}
                         />
-                        {value ? value : '(empty)'}
+                        {value ? value : "(empty)"}
                     </div>
                 ))}
             </div>
@@ -246,26 +253,27 @@ class RangeFilterModal extends FilterModal {
         this.setMin = this.setMin.bind(this);
 
         this.state = {
-            min: '', max: ''
-        }
+            min: "",
+            max: "",
+        };
     }
 
     setBound(side, value) {
         const bounds = {};
-        if(value !== '') {
+        if (value !== "") {
             bounds[side] = parseFloat(value);
         } else {
-            bounds[side] = '';
+            bounds[side] = "";
         }
         this.setState(bounds);
     }
 
     setMin(evt) {
-        this.setBound('min', evt.target.value);
+        this.setBound("min", evt.target.value);
     }
 
     setMax(evt) {
-        this.setBound('max', evt.target.value);
+        this.setBound("max", evt.target.value);
     }
 
     renderBody() {
@@ -273,12 +281,12 @@ class RangeFilterModal extends FilterModal {
             <div>
                 <div>
                     <Label l="label-min" />
-                    <input value={this.state.min} onChange={ this.setMin }/>
+                    <input value={this.state.min} onChange={this.setMin} />
                 </div>
 
                 <div>
                     <Label l="label-max" />
-                    <input value={this.state.max} onChange={ this.setMax}/>
+                    <input value={this.state.max} onChange={this.setMax} />
                 </div>
             </div>
         );
@@ -298,22 +306,22 @@ class ColumnFilter extends React.Component {
     render() {
         // if there is no filter or the filter is set to false,
         // then do not present filtering as an option
-        if(!this.props.column.filter) {
+        if (!this.props.column.filter) {
             return false;
         }
 
         const onClose = () => {
-            this.setState({open: false, });
+            this.setState({ open: false });
         };
 
         let modal = false;
-        switch(this.props.column.filter.type) {
-            case 'list':
+        switch (this.props.column.filter.type) {
+            case "list":
                 modal = (
                     <ListFilterModal
                         open={this.state.open}
                         onClose={onClose}
-                        ref='modal'
+                        ref="modal"
                         column={this.props.column}
                         results={this.props.results}
                         store={this.props.store}
@@ -321,12 +329,12 @@ class ColumnFilter extends React.Component {
                     />
                 );
                 break;
-            case 'range':
+            case "range":
                 modal = (
                     <RangeFilterModal
                         open={this.state.open}
                         onClose={onClose}
-                        ref='modal'
+                        ref="modal"
                         column={this.props.column}
                         results={this.props.results}
                         store={this.props.store}
@@ -339,7 +347,7 @@ class ColumnFilter extends React.Component {
                     <FilterModal
                         open={this.state.open}
                         onClose={onClose}
-                        ref='modal'
+                        ref="modal"
                         column={this.props.column}
                         results={this.props.results}
                         store={this.props.store}
@@ -348,17 +356,17 @@ class ColumnFilter extends React.Component {
                 );
         }
 
-
-        const filter_title = 'filter';
+        const filter_title = "filter";
         return (
             <span>
                 <i
                     title={filter_title}
-                    onClick={ () => { this.setState({open: true}) }}
-                    className='filter icon'
-                >
-                </i>
-                { modal }
+                    onClick={() => {
+                        this.setState({ open: true });
+                    }}
+                    className="filter icon"
+                ></i>
+                {modal}
             </span>
         );
     }
@@ -369,7 +377,6 @@ class ColumnFilter extends React.Component {
  *
  */
 class Grid extends React.Component {
-
     constructor() {
         super();
 
@@ -377,7 +384,7 @@ class Grid extends React.Component {
         //  null means in results-order.
         this.state = {
             sortBy: null,
-            sortAs: 'string',
+            sortAs: "string",
             sortAsc: true,
             minimized: false,
         };
@@ -387,18 +394,22 @@ class Grid extends React.Component {
 
     nextSort(column) {
         // rotate to the next sort type
-        if(this.state.sortBy === column.property) {
+        if (this.state.sortBy === column.property) {
             // when sorted ascending, go to descending
-            if(this.state.sortAsc) {
-                this.setState({sortAsc: false});
-            // if the sort is descending already, go
-            //  back to a neutral state
+            if (this.state.sortAsc) {
+                this.setState({ sortAsc: false });
+                // if the sort is descending already, go
+                //  back to a neutral state
             } else {
-                this.setState({sortBy: null, sortAsc: true});
+                this.setState({ sortBy: null, sortAsc: true });
             }
         } else {
-            const sort_as = column.sortAs ? column.sortAs : 'string';
-            this.setState({sortBy: column.property, sortAsc: true, sortAs: sort_as} );
+            const sort_as = column.sortAs ? column.sortAs : "string";
+            this.setState({
+                sortBy: column.property,
+                sortAsc: true,
+                sortAs: sort_as,
+            });
         }
     }
 
@@ -409,32 +420,44 @@ class Grid extends React.Component {
         // grid always handles the first query.
         const query_id = this.props.queries.order[0];
 
-        for(const column_def of headerConf) {
+        for (const column_def of headerConf) {
             let sort_tool = null;
-            let sort_classes = 'icon sort';
-            const sort_title = this.props.t('filter-sort');
+            let sort_classes = "icon sort";
+            const sort_title = this.props.t("filter-sort");
 
-            if(column_def.sortAs) {
-                if(this.state.sortBy === column_def.property) {
-                    if(this.state.sortAsc) {
-                        sort_classes += ' asc';
+            if (column_def.sortAs) {
+                if (this.state.sortBy === column_def.property) {
+                    if (this.state.sortAsc) {
+                        sort_classes += " asc";
                     } else {
-                        sort_classes += ' desc';
+                        sort_classes += " desc";
                     }
                 }
-                sort_tool = (<i title={ sort_title } onClick={ () => { this.nextSort(column_def); } } className={ sort_classes }></i>);
+                sort_tool = (
+                    <i
+                        title={sort_title}
+                        onClick={() => {
+                            this.nextSort(column_def);
+                        }}
+                        className={sort_classes}
+                    ></i>
+                );
             }
 
             const filter = (
                 <ColumnFilter
-                    store={ this.props.store }
-                    column={ column_def }
+                    store={this.props.store}
+                    column={column_def}
                     results={results}
-                    queryId={ query_id }
+                    queryId={query_id}
                 />
             );
 
-            header_cells.push((<th key={'col' + col_id} >{ column_def.title } {sort_tool} {filter} </th>));
+            header_cells.push(
+                <th key={"col" + col_id}>
+                    {column_def.title} {sort_tool} {filter}{" "}
+                </th>
+            );
             col_id++;
         }
         return header_cells;
@@ -451,7 +474,7 @@ class Grid extends React.Component {
         sorted_results.sort((a, b) => {
             let value_a = a.properties[sort_col];
             let value_b = b.properties[sort_col];
-            if (sort_as === 'number') {
+            if (sort_as === "number") {
                 value_a = parseFloat(value_a);
                 value_b = parseFloat(value_b);
                 if (sort_asc) {
@@ -470,16 +493,16 @@ class Grid extends React.Component {
     getRows(results, rowTemplate) {
         let sorted_rows = results;
         // check to see if there is a sort function
-        if(this.state.sortBy !== null ) {
+        if (this.state.sortBy !== null) {
             sorted_rows = this.sortResults(results);
         }
 
-        let html = '';
-        for(const feature of sorted_rows) {
+        let html = "";
+        for (const feature of sorted_rows) {
             html += Mark.up(rowTemplate, feature, FORMAT_OPTIONS);
         }
 
-        return {__html: html};
+        return { __html: html };
     }
 
     resultsAsCSV(gridCols, features) {
@@ -487,8 +510,8 @@ class Grid extends React.Component {
         const feature_data = [];
 
         // get the export columns
-        for(const column of gridCols) {
-            if(column.property) {
+        for (const column of gridCols) {
+            if (column.property) {
                 attributes.push(column.property);
             }
         }
@@ -497,20 +520,22 @@ class Grid extends React.Component {
         feature_data.push(attributes);
 
         // for each feature, create a row.
-        for(const feature of features) {
+        for (const feature of features) {
             const row = [];
-            for(const attr of attributes) {
+            for (const attr of attributes) {
                 row.push(feature.properties[attr]);
             }
             feature_data.push(row);
         }
 
         // create the data
-        const csv_blob = new Blob([writeCsv(feature_data)], {type: 'text/csv;charset=utf-8'});
+        const csv_blob = new Blob([writeCsv(feature_data)], {
+            type: "text/csv;charset=utf-8",
+        });
 
         // create a unique string
-        const uniq = '' + (new Date()).getTime();
-        const csv_name = 'download_' + uniq + '.csv';
+        const uniq = "" + new Date().getTime();
+        const csv_name = "download_" + uniq + ".csv";
 
         // now have FileSaver 'normalize' how to do a save-as.
         FileSaver.saveAs(csv_blob, csv_name);
@@ -518,11 +543,18 @@ class Grid extends React.Component {
 
     componentDidUpdate(prevProps) {
         // check to see if the grid should start open minimized.
-        if (prevProps.queries.order[0] !== this.props.queries.order[0] && this.props.queries.order[0]) {
+        if (
+            prevProps.queries.order[0] !== this.props.queries.order[0] &&
+            this.props.queries.order[0]
+        ) {
             const queryId = this.props.queries.order[0];
             const query = this.props.queries[queryId];
-            if (query && query.runOptions && query.runOptions.gridMinimized === true) {
-                this.setState({minimized: true});
+            if (
+                query &&
+                query.runOptions &&
+                query.runOptions.gridMinimized === true
+            ) {
+                this.setState({ minimized: true });
             }
         }
     }
@@ -535,46 +567,57 @@ class Grid extends React.Component {
 
         // only render the first query.
         const query_id = this.props.queries.order[0];
-        if(query_id) {
+        if (query_id) {
             const query = this.props.queries[query_id];
-            if(query.progress === 'finished') {
+            if (query.progress === "finished") {
                 const service = this.props.services[query.service];
                 const serviceName = service.alias || service.name;
                 const paths = Object.keys(query.results);
-                paths.forEach(layerPath => {
+                paths.forEach((layerPath) => {
                     let layer = null;
                     try {
-                        layer = getLayerFromPath(this.props.mapSources, layerPath);
-                    } catch(err) {
+                        layer = getLayerFromPath(
+                            this.props.mapSources,
+                            layerPath
+                        );
+                    } catch (err) {
                         // no layer, no problem.
                     }
 
-                    if(layer !== null) {
-                        const columnTemplate = layer.templates[serviceName + '-grid-columns']
-                            || layer.templates.gridColumns;
+                    if (layer !== null) {
+                        const columnTemplate =
+                            layer.templates[serviceName + "-grid-columns"] ||
+                            layer.templates.gridColumns;
 
                         // try to parse the grid columns
-                        if (columnTemplate && typeof columnTemplate.contents === 'object') {
+                        if (
+                            columnTemplate &&
+                            typeof columnTemplate.contents === "object"
+                        ) {
                             grid_cols = columnTemplate.contents;
                         } else {
                             try {
                                 grid_cols = JSON.parse(columnTemplate.contents);
-                            } catch(err) {
+                            } catch (err) {
                                 // swallow the error
                             }
                         }
 
-                        const rowTemplate = layer.templates[serviceName + '-grid-row']
-                            || layer.templates.gridRow;
+                        const rowTemplate =
+                            layer.templates[serviceName + "-grid-row"] ||
+                            layer.templates.gridRow;
 
                         if (rowTemplate) {
                             grid_row = rowTemplate.contents;
                         }
 
-                        if(grid_cols && grid_row) {
+                        if (grid_cols && grid_row) {
                             // render as a grid.
-                            features = matchFeatures(query.results[layerPath], query.filter);
-                            if(query.results[layerPath].length > 0) {
+                            features = matchFeatures(
+                                query.results[layerPath],
+                                query.filter
+                            );
+                            if (query.results[layerPath].length > 0) {
                                 display_table = true;
                             }
                         } else {
@@ -586,44 +629,48 @@ class Grid extends React.Component {
         }
 
         // render the empty string if there is nothing to show.
-        if(!display_table) {
+        if (!display_table) {
             return false;
         }
 
         // when minimized, show the maximize button.
-        const min_btn_class = this.state.minimized ? 'maximize' : 'minimize';
-        const grid_class = this.state.minimized ? 'hide' : '';
+        const min_btn_class = this.state.minimized ? "maximize" : "minimize";
+        const grid_class = this.state.minimized ? "hide" : "";
         const toggle_grid = () => {
-            this.setState({minimized: !this.state.minimized});
+            this.setState({ minimized: !this.state.minimized });
         };
 
         return (
-            <div className='gm-grid'>
-                <div className='toolbar'>
+            <div className="gm-grid">
+                <div className="toolbar">
                     <span
-                        onClick={ () => { this.resultsAsCSV(grid_cols, features) } }
-                        className={'tool download'}
-                        title={ this.props.t('grid-download-csv')}
+                        onClick={() => {
+                            this.resultsAsCSV(grid_cols, features);
+                        }}
+                        className={"tool download"}
+                        title={this.props.t("grid-download-csv")}
                     >
-                        <i className='icon download'></i>
+                        <i className="icon download"></i>
                     </span>
                     <span
-                        onClick={ toggle_grid }
-                        className={'tool ' + min_btn_class}
-                        title={ this.props.t('grid-min-max') }
+                        onClick={toggle_grid}
+                        className={"tool " + min_btn_class}
+                        title={this.props.t("grid-min-max")}
                     >
-                        <i className={'icon ' + min_btn_class}></i>
+                        <i className={"icon " + min_btn_class}></i>
                     </span>
                 </div>
-                <div className={'grid-display ' + grid_class}>
+                <div className={"grid-display " + grid_class}>
                     <table>
                         <thead>
-                            <tr>
-                                { this.getHeaderRow(features, grid_cols) }
-                            </tr>
+                            <tr>{this.getHeaderRow(features, grid_cols)}</tr>
                         </thead>
-                        <tbody dangerouslySetInnerHTML={this.getRows(features, grid_row)}>
-                        </tbody>
+                        <tbody
+                            dangerouslySetInnerHTML={this.getRows(
+                                features,
+                                grid_row
+                            )}
+                        ></tbody>
                     </table>
                 </div>
             </div>
@@ -631,10 +678,10 @@ class Grid extends React.Component {
     }
 }
 
-const mapToProps = function(store) {
+const mapToProps = function (store) {
     return {
         queries: store.query,
         mapSources: store.mapSources,
-    }
-}
+    };
+};
 export default connect(mapToProps)(withTranslation()(Grid));

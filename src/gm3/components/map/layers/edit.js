@@ -26,20 +26,20 @@
  * Special collection of functions for editing layers.
  */
 
-import MultiPoint from 'ol/geom/MultiPoint';
-import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
-import {EDIT_STYLE} from '../../../defaults';
+import MultiPoint from "ol/geom/MultiPoint";
+import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style";
+import { EDIT_STYLE } from "../../../defaults";
 
 export const getEditStyle = (glStyle = EDIT_STYLE, renderPoints = false) => {
     const styles = [
         new Style({
             stroke: new Stroke({
-                color: glStyle['line-color'],
+                color: glStyle["line-color"],
                 width: 3,
             }),
             fill: new Fill({
-                color: glStyle['fill-color'],
-                opacity: glStyle['fill-opacity'],
+                color: glStyle["fill-color"],
+                opacity: glStyle["fill-opacity"],
             }),
         }),
     ];
@@ -50,7 +50,7 @@ export const getEditStyle = (glStyle = EDIT_STYLE, renderPoints = false) => {
                 image: new CircleStyle({
                     radius: 5,
                     fill: new Fill({
-                        color: glStyle['circle-color'],
+                        color: glStyle["circle-color"],
                     }),
                 }),
                 geometry: (feature) => {
@@ -58,11 +58,11 @@ export const getEditStyle = (glStyle = EDIT_STYLE, renderPoints = false) => {
                     const type = geom.getType().toLowerCase();
 
                     let coordinates = [];
-                    if (type === 'polygon' || type === 'multilinestring') {
+                    if (type === "polygon" || type === "multilinestring") {
                         coordinates = geom.getCoordinates().flat();
-                    } else if (type === 'multipolygon') {
+                    } else if (type === "multipolygon") {
                         coordinates = geom.getCoordinates().flat(2);
-                    } else if (type === 'point') {
+                    } else if (type === "point") {
                         return geom;
                     } else {
                         coordinates = geom.getCoordinates();

@@ -22,17 +22,14 @@
  * SOFTWARE.
  */
 
+import { favoriteLayer } from "../actions/mapSource";
 
-import { favoriteLayer } from '../actions/mapSource';
-
-import * as util from '../util';
-
+import * as util from "../util";
 
 /** Class for tracking the state of the user in localStorage
  *
  */
 export default class LocalStorageTracker {
-
     constructor(store) {
         this.tracking = false;
 
@@ -40,7 +37,9 @@ export default class LocalStorageTracker {
         this.store = store;
 
         // when the store changes, track those changes.
-        store.subscribe(() => { this.track(); });
+        store.subscribe(() => {
+            this.track();
+        });
     }
 
     /** turn on tracking.
@@ -59,25 +58,25 @@ export default class LocalStorageTracker {
      */
     restoreFavorites() {
         // get the favorites list
-        let faves = localStorage.getItem('favorites');
+        let faves = localStorage.getItem("favorites");
 
-        if(faves) {
+        if (faves) {
             // convert the 'faves' into a list of objects.
-            faves = faves.split(';');
+            faves = faves.split(";");
 
             // if there were favorites saved, for each one,
             //  issue a 'FAVORITES' command for the mapsource.
-            if(faves && faves.length) {
-                for(const fave of faves) {
+            if (faves && faves.length) {
+                for (const fave of faves) {
                     const ms_name = util.getMapSourceName(fave);
                     const layer_name = util.getLayerName(fave);
-                    this.store.dispatch(favoriteLayer(ms_name, layer_name, true));
+                    this.store.dispatch(
+                        favoriteLayer(ms_name, layer_name, true)
+                    );
                 }
             }
         }
-
     }
-
 
     /** Issue the set of commands that will 'restore'
      *  the previous state.
@@ -92,33 +91,33 @@ export default class LocalStorageTracker {
     trackFavorites() {
         const state = this.store.getState();
 
-        let favorites = '', prefix = '';
+        let favorites = "",
+            prefix = "";
         // check map-sources for favorite layers.
-        for(const ms_name in state.mapSources) {
-            for(const layer of state.mapSources[ms_name].layers) {
-                if(layer.favorite) {
-                    favorites += prefix + ms_name + '/' + layer.name;
-                    prefix = ';';
+        for (const ms_name in state.mapSources) {
+            for (const layer of state.mapSources[ms_name].layers) {
+                if (layer.favorite) {
+                    favorites += prefix + ms_name + "/" + layer.name;
+                    prefix = ";";
                 }
             }
         }
 
-        const changed = (this.lastFavorites !== favorites);
-        if(changed) {
+        const changed = this.lastFavorites !== favorites;
+        if (changed) {
             // serialize the favorite layers and save them in local storage.
-            localStorage.setItem('favorites', favorites);
+            localStorage.setItem("favorites", favorites);
             this.lastFavorites = favorites;
         }
     }
 
     track() {
         // when tracking is not active, just return false.
-        if(this.tracking) {
+        if (this.tracking) {
             this.trackFavorites();
         }
 
         // no DOM components to render.
         return false;
     }
-
 }

@@ -22,34 +22,30 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React from "react";
+import { useTranslation } from "react-i18next";
 
-const ModalTitle = ({title}) => {
-    const {t} = useTranslation();
+const ModalTitle = ({ title }) => {
+    const { t } = useTranslation();
+    return <h5>{t(title)}</h5>;
+};
+
+const ModalButton = ({ option, onClick }) => {
+    const { t } = useTranslation();
     return (
-        <h5>{t(title)}</h5>
+        <div className="button-parent">
+            <button
+                onClick={() => {
+                    onClick();
+                }}
+            >
+                {t(option.label)}
+            </button>
+        </div>
     );
 };
 
-const ModalButton = ({option, onClick}) => {
-    const {t} = useTranslation();
-    return (
-        <div
-            className="button-parent"
-        >
-            <button
-                onClick={() => { onClick(); }}
-            >
-                { t(option.label) }
-            </button>
-        </div>
-
-    );
-}
-
 class ModalDialog extends React.Component {
-
     constructor(props) {
         super(props);
         this.renderBody = this.renderBody.bind(this);
@@ -62,7 +58,7 @@ class ModalDialog extends React.Component {
     }
 
     renderBody() {
-        if(this.props.children) {
+        if (this.props.children) {
             return this.props.children;
         }
         return this.props.message;
@@ -82,9 +78,11 @@ class ModalDialog extends React.Component {
 
     getFooterClass(n) {
         const footer_classes = {
-            1: 'one', 2: 'two', 3: 'three'
+            1: "one",
+            2: "two",
+            3: "three",
         };
-        return 'modal-footer ' + footer_classes[n];
+        return "modal-footer " + footer_classes[n];
     }
 
     getOptions() {
@@ -96,18 +94,14 @@ class ModalDialog extends React.Component {
         const footer_class = this.getFooterClass(options.length);
 
         const buttons = [];
-        for(const option of options) {
+        for (const option of options) {
             buttons.push(this.renderOption(option));
         }
-        return (
-            <div className={footer_class}>
-                { buttons }
-            </div>
-        );
+        return <div className={footer_class}>{buttons}</div>;
     }
 
     close(response) {
-        if(this.props.onClose) {
+        if (this.props.onClose) {
             this.props.onClose(response);
         }
     }
@@ -118,16 +112,19 @@ class ModalDialog extends React.Component {
         }
 
         return (
-            <div className='modal-blocker'>
-                <div className='modal-frame'>
-                    <div className='modal-title'>
+            <div className="modal-blocker">
+                <div className="modal-frame">
+                    <div className="modal-title">
                         <ModalTitle title={this.getTitle()} />
                     </div>
-                    <div className='modal-body' style={this.BodyProps && this.BodyProps.style}>
-                        { this.renderBody() }
+                    <div
+                        className="modal-body"
+                        style={this.BodyProps && this.BodyProps.style}
+                    >
+                        {this.renderBody()}
                     </div>
 
-                    { this.renderFooter() }
+                    {this.renderFooter()}
                 </div>
             </div>
         );

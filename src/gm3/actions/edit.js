@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import { EDITOR } from '../actionTypes';
+import { EDITOR } from "../actionTypes";
 
 export function setEditFeature(feature, isNew = false) {
     return {

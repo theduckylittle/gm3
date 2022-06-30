@@ -22,17 +22,17 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import { connect } from 'react-redux';
-import { withTranslation } from 'react-i18next';
+import React from "react";
+import { connect } from "react-redux";
+import { withTranslation } from "react-i18next";
 
-import KMLFormat from 'ol/format/KML';
-import GeoJSONFormat from 'ol/format/GeoJSON';
+import KMLFormat from "ol/format/KML";
+import GeoJSONFormat from "ol/format/GeoJSON";
 
-import { addFeatures } from '../../../actions/mapSource';
-import Modal from '../../modal';
+import { addFeatures } from "../../../actions/mapSource";
+import Modal from "../../modal";
 
-import { Tool } from '../tools';
+import { Tool } from "../tools";
 
 /** Cursory validation of uploaded features.
  *
@@ -43,8 +43,8 @@ import { Tool } from '../tools';
 function isValidFeature(feature) {
     // ensure all of the geometry's coordinates are numbers.
     const coords = feature.getGeometry().flatCoordinates;
-    for(let i = 0, ii = coords.length; i < ii; i++) {
-        if(isNaN(coords[i])) {
+    for (let i = 0, ii = coords.length; i < ii; i++) {
+        if (isNaN(coords[i])) {
             return false;
         }
     }
@@ -56,11 +56,15 @@ function isValidFeature(feature) {
  */
 class UploadModal extends Modal {
     close(status) {
-        if(status === 'upload') {
-            this.setState({progress: 'loading', withError: false, features: 0});
+        if (status === "upload") {
+            this.setState({
+                progress: "loading",
+                withError: false,
+                features: 0,
+            });
             this.parseFiles();
         } else {
-            this.setState({loading: false});
+            this.setState({ loading: false });
         }
 
         this.props.onClose(status);
@@ -68,12 +72,10 @@ class UploadModal extends Modal {
 
     getOptions() {
         switch (this.state.progress) {
-            case 'loading':
+            case "loading":
                 return [];
-            case 'finished':
-                return [
-                    {label: 'Close', value: 'dismiss'},
-                ];
+            case "finished":
+                return [{ label: "Close", value: "dismiss" }];
             default:
                 return this.props.options;
         }
@@ -81,47 +83,50 @@ class UploadModal extends Modal {
 
     renderBody() {
         // when loading,
-        if(this.state.progress === 'loading') {
+        if (this.state.progress === "loading") {
             return (
                 <div>
                     <p>
-                        <span className="upload spinner"></span> {this.props.t('upload-uploading')}
+                        <span className="upload spinner"></span>{" "}
+                        {this.props.t("upload-uploading")}
                     </p>
                 </div>
             );
-        // after all files have uploaded
-        } else if(this.state.progress === 'finished') {
+            // after all files have uploaded
+        } else if (this.state.progress === "finished") {
             let error = false;
-            if(this.state.withError) {
+            if (this.state.withError) {
+                error = <p>{this.props.t("upload-file-error")}</p>;
+            } else if (this.state.invalid > 0) {
                 error = (
                     <p>
-                        {this.props.t('upload-file-error')}
-                    </p>
-                );
-            } else if(this.state.invalid > 0) {
-                error = (
-                    <p>
-                        {this.props.t('upload-invalid-features', {count: this.state.invalid})}
+                        {this.props.t("upload-invalid-features", {
+                            count: this.state.invalid,
+                        })}
                     </p>
                 );
             }
             return (
                 <div>
                     <p>
-                        {this.props.t('upload-uploaded', {count: this.state.features})}
+                        {this.props.t("upload-uploaded", {
+                            count: this.state.features,
+                        })}
                     </p>
-                    { error }
+                    {error}
                 </div>
             );
         }
 
         return (
             <div>
+                <p>{this.props.t("upload-help")}</p>
                 <p>
-                    { this.props.t('upload-help') }
-                </p>
-                <p>
-                    <input ref='fileInput' type='file' accept='.geojson,.json,.kml'/>
+                    <input
+                        ref="fileInput"
+                        type="file"
+                        accept=".geojson,.json,.kml"
+                    />
                 </p>
             </div>
         );
@@ -141,22 +146,25 @@ class UploadModal extends Modal {
         // the current implementation only uses a "single" file
         //  upload, but these leaves the door open to a multiple
         //  file functionality.
-        for(let i = 0, ii = files.length; i < ii; i++) {
+        for (let i = 0, ii = files.length; i < ii; i++) {
             const f = files[i];
             // TODO: This should probably be changed to use
             //   () => {} style functions to prevent the context change,
             //   instead of abusing "self".
             // setup a "load" event.
 
-            reader.onload = (function(file) {
-                return function(e) {
+            reader.onload = (function (file) {
+                return function (e) {
                     // geojson is always used as the output format.
                     const geojson_format = new GeoJSONFormat();
 
                     // input_format is defaulted to null and only
                     //  set if the file format can be inferred.
                     let input_format = null;
-                    if(String(file.name).toLowerCase().split('.').pop() === 'kml') {
+                    if (
+                        String(file.name).toLowerCase().split(".").pop() ===
+                        "kml"
+                    ) {
                         // sweet, KML file.
                         input_format = new KMLFormat();
                     } else {
@@ -164,24 +172,30 @@ class UploadModal extends Modal {
                         try {
                             JSON.parse(e.target.result);
                             input_format = new GeoJSONFormat();
-                        } catch(err) {
+                        } catch (err) {
                             // swallow the exception.
                         }
                     }
 
-                    if(input_format !== null) {
+                    if (input_format !== null) {
                         // parse the features.
-                        let ol_features = input_format.readFeatures(e.target.result);
+                        let ol_features = input_format.readFeatures(
+                            e.target.result
+                        );
                         // create a list of validated features.
                         const valid_features = [];
 
                         // TODO: This should be getting the map projection
                         //       from the map-view!!!
                         let invalid_count = 0;
-                        for(const f of ol_features) {
-                            f.setGeometry(f.getGeometry().transform('EPSG:4326', 'EPSG:3857'));
+                        for (const f of ol_features) {
+                            f.setGeometry(
+                                f
+                                    .getGeometry()
+                                    .transform("EPSG:4326", "EPSG:3857")
+                            );
 
-                            if(isValidFeature(f)) {
+                            if (isValidFeature(f)) {
                                 valid_features.push(f);
                             } else {
                                 invalid_count += 1;
@@ -193,42 +207,43 @@ class UploadModal extends Modal {
 
                         // internal feature representation is as GeoJSON, so the parsed
                         //  ol feautures need converted here...
-                        const collection = geojson_format.writeFeaturesObject(valid_features);
+                        const collection =
+                            geojson_format.writeFeaturesObject(valid_features);
 
                         self.props.onAddFeatures(collection.features);
 
-
                         // update the counter for internal features
                         self.setState({
-                            progress: 'finished',
-                            features: self.state.features + collection.features.length,
+                            progress: "finished",
+                            features:
+                                self.state.features +
+                                collection.features.length,
                             invalid: invalid_count,
                         });
                     } else {
                         // the user will get an error notification
                         self.setState({
-                            progress: 'finished',
+                            progress: "finished",
                             features: 0,
                             withError: true,
                         });
                     }
-                }
+                };
             })(f);
 
             // trigger the actual file read.
             reader.readAsText(f);
         }
     }
-
 }
 
 // setup the default prop options for the modal dialog.
 UploadModal.defaultProps = {
-    title: 'upload-title',
+    title: "upload-title",
     options: [
-        {label: 'Cancel', value: 'dismiss'},
-        {label: 'Okay', value: 'upload'}
-    ]
+        { label: "Cancel", value: "dismiss" },
+        { label: "Okay", value: "upload" },
+    ],
 };
 
 const WrappedUploadModal = withTranslation()(UploadModal);
@@ -251,24 +266,29 @@ export class UploadTool extends React.Component {
     render() {
         return (
             <Tool
-                tip={'upload-tip'}
-                iconClass='upload'
+                tip={"upload-tip"}
+                iconClass="upload"
                 onClick={() => {
-                    this.setState({open: true});
+                    this.setState({ open: true });
                 }}
             >
-                { !this.state.open ? false : (
+                {!this.state.open ? (
+                    false
+                ) : (
                     <WrappedUploadModal
                         open
                         layer={this.props.layer}
                         onClose={(opt) => {
-                            if (opt === 'dismiss') {
-                                this.setState({open: false});
+                            if (opt === "dismiss") {
+                                this.setState({ open: false });
                             }
                         }}
                         onAddFeatures={(features) => {
                             const src = this.props.layer.src[0];
-                            this.props.onAddFeatures(src.mapSourceName, features);
+                            this.props.onAddFeatures(
+                                src.mapSourceName,
+                                features
+                            );
                         }}
                     />
                 )}

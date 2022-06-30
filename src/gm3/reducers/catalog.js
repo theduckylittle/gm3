@@ -26,9 +26,9 @@
  *
  */
 
-import uuid from 'uuid';
+import uuid from "uuid";
 
-import { CATALOG } from '../actionTypes';
+import { CATALOG } from "../actionTypes";
 
 function addGroup(state, action) {
     const new_elem = {};
@@ -37,27 +37,27 @@ function addGroup(state, action) {
     return Object.assign({}, state, new_elem);
 }
 
-export default function catalogReducer(state = {'root': {id: uuid.v4(), children: []}}, action) {
+export default function catalogReducer(
+    state = { root: { id: uuid.v4(), children: [] } },
+    action
+) {
     const new_layer = {};
 
-    switch(action.type) {
+    switch (action.type) {
         case CATALOG.ADD_LAYER:
         case CATALOG.ADD_GROUP:
             return addGroup(state, action);
         case CATALOG.ADD_CHILD:
             // this is a root-level child.
             let p = action.parentId;
-            if(!p) {
-                p = 'root';
+            if (!p) {
+                p = "root";
             }
 
             // create a copy of the group/root with the
             //   new child added to its children list.
             const new_elem = Object.assign({}, state[p], {
-                children: [
-                    ...state[p].children,
-                    action.childId
-                ]
+                children: [...state[p].children, action.childId],
             });
 
             // then create an 'update' object which will
@@ -69,23 +69,23 @@ export default function catalogReducer(state = {'root': {id: uuid.v4(), children
         case CATALOG.FAVORITE:
             const new_fav_layer = {};
             new_fav_layer[action.id] = Object.assign({}, state[action.id], {
-                favorite: action.favorite
+                favorite: action.favorite,
             });
             return Object.assign({}, state, new_fav_layer);
         case CATALOG.GROUP_VIS:
             const new_group = {};
             new_group[action.id] = Object.assign({}, state[action.id], {
-                expand: action.expand
+                expand: action.expand,
             });
             return Object.assign({}, state, new_group);
         case CATALOG.REFRESH:
             new_layer[action.id] = Object.assign({}, state[action.id], {
-                refreshEnabled: action.refreshEnabled
+                refreshEnabled: action.refreshEnabled,
             });
             return Object.assign({}, state, new_layer);
         case CATALOG.LEGEND_VIS:
             new_layer[action.id] = Object.assign({}, state[action.id], {
-                legend: action.on
+                legend: action.on,
             });
             return Object.assign({}, state, new_layer);
         default:

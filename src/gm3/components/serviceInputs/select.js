@@ -22,13 +22,16 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import TextInput from './text';
-
+import React from "react";
+import TextInput from "./text";
 
 export default class SelectInput extends TextInput {
     renderOption(opt) {
-        return (<option key={opt.value} value={opt.value}>{opt.label}</option>);
+        return (
+            <option key={opt.value} value={opt.value}>
+                {opt.label}
+            </option>
+        );
     }
 
     getOptions() {
@@ -39,11 +42,12 @@ export default class SelectInput extends TextInput {
         const options = this.getOptions();
         if (
             this.props.field.default === undefined ||
-            options.filter(v => v.value === this.props.field.default).length < 1
+            options.filter((v) => v.value === this.props.field.default).length <
+                1
         ) {
             this.onChange({
                 target: {
-                    value: options.length > 0 ? options[0].value : '',
+                    value: options.length > 0 ? options[0].value : "",
                 },
             });
         }
@@ -54,10 +58,14 @@ export default class SelectInput extends TextInput {
         const options = this.getOptions();
 
         return (
-            <div className='service-input select'>
-                <label htmlFor={ 'input-' + id }>{ this.props.field.label }</label>
-                <select id={ 'input-' + id} value={this.state.value} onChange={this.onChange}>
-                    { options.map(this.renderOption) }
+            <div className="service-input select">
+                <label htmlFor={"input-" + id}>{this.props.field.label}</label>
+                <select
+                    id={"input-" + id}
+                    value={this.state.value}
+                    onChange={this.onChange}
+                >
+                    {options.map(this.renderOption)}
                 </select>
             </div>
         );

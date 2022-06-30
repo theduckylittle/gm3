@@ -26,25 +26,25 @@
  *
  */
 
-import TileLayer from 'ol/layer/Tile';
-import ArcRestSource from 'ol/source/TileArcGISRest';
+import TileLayer from "ol/layer/Tile";
+import ArcRestSource from "ol/source/TileArcGISRest";
 
 /** Create the parameters for a ArcGIS REST Services layer.
  *
  */
 function defineSource(mapSource) {
     let cx_origin = null;
-    if(mapSource.params['cross-origin']) {
-        cx_origin = mapSource.params['cross-origin'];
-    } else if (mapSource.urls[0].indexOf('http') === 0) {
-        cx_origin = 'anonymous';
+    if (mapSource.params["cross-origin"]) {
+        cx_origin = mapSource.params["cross-origin"];
+    } else if (mapSource.urls[0].indexOf("http") === 0) {
+        cx_origin = "anonymous";
     }
 
     return {
         crossOrigin: cx_origin,
         url: mapSource.urls[0],
         params: mapSource.params,
-    }
+    };
 }
 
 /** Return an OpenLayers Layer for the ArcGIS REST Services source.
@@ -70,8 +70,7 @@ export function updateLayer(map, layer, mapSource) {
     const defn = defineSource(mapSource);
 
     // if the url changed, update that as well.
-    if(src.getUrls()[0] !== defn.url) {
+    if (src.getUrls()[0] !== defn.url) {
         src.setUrl(defn.url);
     }
 }
-

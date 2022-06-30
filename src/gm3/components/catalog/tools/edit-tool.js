@@ -21,21 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import React from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import React from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 
-import { setEditPath, setEditTools } from '../../../actions/map';
-import { setLayerVisibility } from '../../../actions/mapSource';
-import { finishService } from '../../../actions/service';
-import { Tool } from '../tools';
-import { DRAW_TOOLS } from '../../../defaults';
-import { getMapSourceName, getLayerName } from '../../../util';
+import { setEditPath, setEditTools } from "../../../actions/map";
+import { setLayerVisibility } from "../../../actions/mapSource";
+import { finishService } from "../../../actions/service";
+import { Tool } from "../tools";
+import { DRAW_TOOLS } from "../../../defaults";
+import { getMapSourceName, getLayerName } from "../../../util";
 
-
-export const EditTool = ({layer, service, setEditPath, setEditTools, setLayerVisibility, finishService}) => {
+export const EditTool = ({
+    layer,
+    service,
+    setEditPath,
+    setEditTools,
+    setLayerVisibility,
+    finishService,
+}) => {
     const src = layer.src[0];
-    const path = src.mapSourceName + '/' + src.layerName;
+    const path = src.mapSourceName + "/" + src.layerName;
 
     return (
         <Tool
@@ -60,11 +66,15 @@ export const EditTool = ({layer, service, setEditPath, setEditTools, setLayerVis
                 setEditTools(layerTools);
 
                 // ensure the layer is on
-                setLayerVisibility(getMapSourceName(path), getLayerName(path), true);
+                setLayerVisibility(
+                    getMapSourceName(path),
+                    getLayerName(path),
+                    true
+                );
             }}
         />
     );
-}
+};
 
 EditTool.propTypes = {
     changeTool: PropTypes.func,
@@ -72,12 +82,11 @@ EditTool.propTypes = {
 };
 
 EditTool.defaultProps = {
-    changeTool: () => {
-    },
-    drawType: 'point',
+    changeTool: () => {},
+    drawType: "point",
 };
 
-const mapState = state => ({
+const mapState = (state) => ({
     service: state.query.service,
 });
 

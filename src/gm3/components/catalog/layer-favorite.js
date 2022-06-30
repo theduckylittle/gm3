@@ -22,19 +22,22 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import React from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 
-import { favoriteLayer, getLayerFromSources } from '../../actions/mapSource';
-
+import { favoriteLayer, getLayerFromSources } from "../../actions/mapSource";
 
 export function isFavorite(mapSources, layer) {
     let fav = true;
-    for(let i = 0, ii = layer.src.length; i < ii; i++) {
+    for (let i = 0, ii = layer.src.length; i < ii; i++) {
         const src = layer.src[i];
 
-        const ms_layer = getLayerFromSources(mapSources, src.mapSourceName, src.layerName);
+        const ms_layer = getLayerFromSources(
+            mapSources,
+            src.mapSourceName,
+            src.layerName
+        );
         fav = fav && ms_layer.favorite;
     }
     return fav;
@@ -44,14 +47,14 @@ class LayerFavorite extends React.Component {
     render() {
         const is_fav = isFavorite(this.props.mapSources, this.props.layer);
 
-        let classes = 'favorite icon';
-        if(!is_fav) {
-            classes += ' not';
+        let classes = "favorite icon";
+        if (!is_fav) {
+            classes += " not";
         }
 
         return (
             <i
-                className={ classes }
+                className={classes}
                 onClick={() => {
                     this.props.onToggleFavorite(this.props.layer, !is_fav);
                 }}
@@ -75,12 +78,14 @@ function mapStateProps(state) {
 function mapDispatchProps(dispatch) {
     return {
         onToggleFavorite: (layer, favorite) => {
-            for(let i = 0, ii = layer.src.length; i < ii; i++) {
+            for (let i = 0, ii = layer.src.length; i < ii; i++) {
                 const src = layer.src[i];
-                dispatch(favoriteLayer(src.mapSourceName, src.layerName, favorite));
+                dispatch(
+                    favoriteLayer(src.mapSourceName, src.layerName, favorite)
+                );
             }
         },
-    }
+    };
 }
 
 export default connect(mapStateProps, mapDispatchProps)(LayerFavorite);

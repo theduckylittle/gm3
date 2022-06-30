@@ -1,7 +1,7 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import uuid from 'uuid';
+import React from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import uuid from "uuid";
 
 class AttributionDisplay extends React.Component {
     render() {
@@ -11,11 +11,11 @@ class AttributionDisplay extends React.Component {
             return false;
         }
         return (
-            <div className='attribution-display'>
-                {this.props.attributions.map(attrHtml => (
+            <div className="attribution-display">
+                {this.props.attributions.map((attrHtml) => (
                     <div
-                        dangerouslySetInnerHTML={{__html: attrHtml}}
-                        className='attribution'
+                        dangerouslySetInnerHTML={{ __html: attrHtml }}
+                        className="attribution"
                         key={uuid()}
                     ></div>
                 ))}
@@ -32,7 +32,7 @@ AttributionDisplay.defaultProps = {
     attributions: [],
 };
 
-const mapState = state => {
+const mapState = (state) => {
     const attributions = [];
     for (const mapSourceName in state.mapSources) {
         const mapSource = state.mapSources[mapSourceName];

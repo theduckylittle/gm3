@@ -26,39 +26,39 @@
  *
  */
 
-import uuid from 'uuid';
-import { UI } from '../actionTypes';
+import uuid from "uuid";
+import { UI } from "../actionTypes";
 
 const defaultState = {
     stateId: 0,
     hint: null,
     action: null,
-    modal: '',
+    modal: "",
 };
 
 export default function uiReducer(state = defaultState, action) {
-    switch(action.type) {
+    switch (action.type) {
         case UI.HINT:
             return Object.assign({}, state, {
                 stateId: uuid(),
-                hint: action.hint
+                hint: action.hint,
             });
         case UI.CLEAR_HINT:
             return Object.assign({}, state, {
                 stateId: uuid(),
-                hint: null
+                hint: null,
             });
         case UI.RUN_ACTION:
-            return Object.assign({}, state, {stateId: uuid(), action: action.action});
+            return Object.assign({}, state, {
+                stateId: uuid(),
+                action: action.action,
+            });
         case UI.CLEAR_ACTION:
-            return Object.assign({}, state, {stateId: uuid(), action: null});
+            return Object.assign({}, state, { stateId: uuid(), action: null });
         case UI.SHOW_MODAL:
-            return Object.assign({},
-                state,
-                {
-                    modal: action.payload,
-                },
-            );
+            return Object.assign({}, state, {
+                modal: action.payload,
+            });
         default:
             return state;
     }

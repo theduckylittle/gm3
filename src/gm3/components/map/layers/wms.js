@@ -26,12 +26,12 @@
  *
  */
 
-import * as util from '../../../util';
-import Image from 'ol/layer/Image';
-import ImageWMS from 'ol/source/ImageWMS';
-import * as proj from 'ol/proj';
+import * as util from "../../../util";
+import Image from "ol/layer/Image";
+import ImageWMS from "ol/source/ImageWMS";
+import * as proj from "ol/proj";
 
-const WEBMERC_PROJ = proj.get('EPSG:3857');
+const WEBMERC_PROJ = proj.get("EPSG:3857");
 
 /** Create the parameters for a WMS layer.
  *
@@ -39,8 +39,8 @@ const WEBMERC_PROJ = proj.get('EPSG:3857');
 function defineSource(mapSource) {
     const layers = [];
     // this creates a layer list
-    for(const layer of mapSource.layers) {
-        if(layer.on) {
+    for (const layer of mapSource.layers) {
+        if (layer.on) {
             layers.push(layer.name);
         }
     }
@@ -49,23 +49,25 @@ function defineSource(mapSource) {
         url: mapSource.urls[0],
         // This is a carry over from previous generations behaviour.
         ratio: 1.0,
-        params: Object.assign({
-            'VERSION': '1.1.1',
-            'LAYERS': layers.join(',')
-        }, mapSource.params),
+        params: Object.assign(
+            {
+                VERSION: "1.1.1",
+                LAYERS: layers.join(","),
+            },
+            mapSource.params
+        ),
         serverType: mapSource.serverType,
         minResolution: mapSource.minresolution,
         maxResolution: mapSource.maxresolution,
     };
 
-    if(mapSource.params['cross-origin']) {
-        source_opts.crossOrigin = mapSource.params['cross-origin'];
-    } else if (mapSource.urls[0].indexOf('http') === 0) {
-        source_opts.crossOrigin = 'anonymous';
+    if (mapSource.params["cross-origin"]) {
+        source_opts.crossOrigin = mapSource.params["cross-origin"];
+    } else if (mapSource.urls[0].indexOf("http") === 0) {
+        source_opts.crossOrigin = "anonymous";
     }
     return source_opts;
 }
-
 
 /** Return an OpenLayers Layer for the WMS source.
  *
@@ -75,7 +77,7 @@ function defineSource(mapSource) {
  */
 export function createLayer(mapSource) {
     return new Image({
-        source: new ImageWMS(defineSource(mapSource))
+        source: new ImageWMS(defineSource(mapSource)),
     });
 }
 
@@ -88,12 +90,12 @@ export function updateLayer(map, layer, mapSource) {
     const defn = defineSource(mapSource);
 
     // if the params objects differ update them
-    if(util.objectsDiffer(defn.params, src.getParams())) {
+    if (util.objectsDiffer(defn.params, src.getParams())) {
         src.updateParams(defn.params);
     }
 
     // if the url changed, update that as well.
-    if(src.getUrl() !== defn.url) {
+    if (src.getUrl() !== defn.url) {
         src.setUrl(defn.url);
     }
 }
@@ -108,26 +110,29 @@ export function updateLayer(map, layer, mapSource) {
  */
 export function getLegend(mapSource, mapView, layerName) {
     // pull out the first url for making the legend.
-    const base_url = mapSource.urls[0].split('?')[0];
+    const base_url = mapSource.urls[0].split("?")[0];
 
-    const params = Object.assign({
-        'REQUEST': 'GetLegendGraphic',
-        'SCALE': util.getScale(mapView.resolution, WEBMERC_PROJ),
-        'SERVICE': 'WMS',
-        // TODO: Does this need to be passed in? Check by server-type?
-        'VERSION': '1.1.1',
-        'WIDTH': '250',
-        'LAYER': layerName,
-        'FORMAT': 'image/png',
-    }, mapSource.params);
+    const params = Object.assign(
+        {
+            REQUEST: "GetLegendGraphic",
+            SCALE: util.getScale(mapView.resolution, WEBMERC_PROJ),
+            SERVICE: "WMS",
+            // TODO: Does this need to be passed in? Check by server-type?
+            VERSION: "1.1.1",
+            WIDTH: "250",
+            LAYER: layerName,
+            FORMAT: "image/png",
+        },
+        mapSource.params
+    );
 
     const images = [];
 
-    images.push(base_url + '?' + util.formatUrlParameters(params));
+    images.push(base_url + "?" + util.formatUrlParameters(params));
     // 'img' type legends just return a list
     // of images that can be included with a <img src=image[x]>
     return {
-        type: 'img',
-        images
-    }
+        type: "img",
+        images,
+    };
 }

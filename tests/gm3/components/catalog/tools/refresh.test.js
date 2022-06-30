@@ -22,55 +22,60 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import { screen, render, fireEvent } from '@testing-library/react';
+import React from "react";
+import { screen, render, fireEvent } from "@testing-library/react";
 
-import { LayerRefresh } from 'gm3/components/catalog/tools/refresh';
+import { LayerRefresh } from "gm3/components/catalog/tools/refresh";
 
-describe('Refresh tool test', () => {
-    it('renders a refresh tool and dispatches an action', () => {
+describe("Refresh tool test", () => {
+    it("renders a refresh tool and dispatches an action", () => {
         let clicked = false;
 
         const props = {
-            onToggleRefresh: function() {
+            onToggleRefresh: function () {
                 clicked = true;
             },
             layer: {
-                src: [{
-                    mapSourceName: 'test',
-                    layerName: 'test',
-                }],
+                src: [
+                    {
+                        mapSourceName: "test",
+                        layerName: "test",
+                    },
+                ],
             },
             catalog: {
                 root: {
-                    children: ['zzz', 'xxx'],
+                    children: ["zzz", "xxx"],
                 },
-                'zzz': {
-                    src: [{mapSourceName: 'test', layerName: 'test'}],
+                zzz: {
+                    src: [{ mapSourceName: "test", layerName: "test" }],
                 },
-                'xxx': {
-                    src: [{mapSourceName: 'test2', layerName: 'test3'}],
+                xxx: {
+                    src: [{ mapSourceName: "test2", layerName: "test3" }],
                 },
             },
             mapSources: {
-                'test': {
-                    layers: [{
-                        name: 'test',
-                        on: true,
-                    }],
+                test: {
+                    layers: [
+                        {
+                            name: "test",
+                            on: true,
+                        },
+                    ],
                 },
-                'test2': {
-                    layers: [{
-                        name: 'test3',
-                        on: true,
-                    }],
+                test2: {
+                    layers: [
+                        {
+                            name: "test3",
+                            on: true,
+                        },
+                    ],
                 },
             },
         };
 
         render(<LayerRefresh {...props} />);
-        fireEvent.click(screen.getByRole('button'));
+        fireEvent.click(screen.getByRole("button"));
         expect(clicked).toBe(true);
     });
 });
-

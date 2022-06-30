@@ -26,62 +26,80 @@
  *
  */
 
-import { MAP } from '../actionTypes';
+import { MAP } from "../actionTypes";
 
 export function move(center, zoom) {
     return {
         type: MAP.MOVE,
         center,
         zoom,
-    }
+    };
 }
 
 export function cursor(coords) {
     return {
         type: MAP.CURSOR,
-        coords
-    }
+        coords,
+    };
 }
 
 export function changeTool(tool, src = null) {
     return {
         type: MAP.CHANGE_TOOL,
-        tool, src
-    }
+        tool,
+        src,
+    };
 }
 
-export function createQuery(service, selection, fields, layers, single, runOptions = {}) {
+export function createQuery(
+    service,
+    selection,
+    fields,
+    layers,
+    single,
+    runOptions = {}
+) {
     return {
         type: MAP.QUERY_NEW,
         query: {
-            service, selection, fields, layers, runOptions,
+            service,
+            selection,
+            fields,
+            layers,
+            runOptions,
         },
-        singleQuery: single
+        singleQuery: single,
     };
 }
 
 export function startQuery(queryId) {
     return {
         type: MAP.QUERY_START,
-        id: queryId
-    }
+        id: queryId,
+    };
 }
 
 export function finishQuery(queryId) {
     return {
         type: MAP.QUERY_FINISHED,
-        id: queryId
-    }
+        id: queryId,
+    };
 }
 
 export function queryProgress(queryId) {
     return {
         type: MAP.QUERY_PROGRESS,
-        id: queryId
+        id: queryId,
     };
 }
 
-export function resultsForQuery(queryId, layerName, failed, features, messageText = '') {
+export function resultsForQuery(
+    queryId,
+    layerName,
+    failed,
+    features,
+    messageText = ""
+) {
     return {
         type: MAP.QUERY_RESULTS,
         id: queryId,
@@ -89,35 +107,37 @@ export function resultsForQuery(queryId, layerName, failed, features, messageTex
         failed,
         features,
         messageText,
-    }
+    };
 }
 
 export function renderedResultsForQuery(queryId, target, data) {
     return {
         type: MAP.QUERY_RENDERED_RESULTS,
-        id: queryId, target, data
-    }
+        id: queryId,
+        target,
+        data,
+    };
 }
 
 export function addSelectionFeature(feature) {
     return {
         type: MAP.ADD_SELECTION_FEATURE,
-        feature
-    }
+        feature,
+    };
 }
 
 export function zoomToExtent(extent, projection) {
     return {
         type: MAP.ZOOM_TO_EXTENT,
         extent,
-        projection
-    }
+        projection,
+    };
 }
 
 export function removeQuery(queryId) {
     return {
         type: MAP.QUERY_REMOVE,
-        id: queryId
+        id: queryId,
     };
 }
 
@@ -125,20 +145,20 @@ export function removeQueryResults(queryId, filter) {
     return {
         type: MAP.QUERY_RESULTS_REMOVE,
         id: queryId,
-        filter
+        filter,
     };
 }
 
 export function clearSelectionFeatures() {
     return {
-        type: MAP.CLEAR_SELECTION_FEATURES
+        type: MAP.CLEAR_SELECTION_FEATURES,
     };
 }
 
 export function updateSketchGeometry(geometry) {
     return {
         type: MAP.SKETCH_GEOMETRY,
-        geometry
+        geometry,
     };
 }
 
@@ -148,7 +168,7 @@ export function addFilter(queryId, filterDefn) {
     return {
         type: MAP.ADD_FILTER,
         id: queryId,
-        filter: filterDefn
+        filter: filterDefn,
     };
 }
 
@@ -158,8 +178,8 @@ export function removeFilter(queryId, field) {
     return {
         type: MAP.REMOVE_FILTER,
         id: queryId,
-        field
-    }
+        field,
+    };
 }
 
 /* Set the view of the map.
@@ -169,9 +189,12 @@ export function removeFilter(queryId, field) {
  * @return An action definition.
  */
 export function setView(view) {
-    return Object.assign({
-        type: MAP.MOVE
-    }, view);
+    return Object.assign(
+        {
+            type: MAP.MOVE,
+        },
+        view
+    );
 }
 
 /* Set a buffer for selection features.

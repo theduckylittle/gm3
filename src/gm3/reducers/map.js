@@ -26,7 +26,7 @@
  *
  */
 
-import { CONFIG, MAP } from '../actionTypes';
+import { CONFIG, MAP } from "../actionTypes";
 
 const default_view = {
     center: [0, 0],
@@ -37,8 +37,8 @@ const default_view = {
     interactionType: null,
     selectionFeatures: [],
     selectionBuffer: 0,
-    selectionBufferUnits: 'ft',
-    editPath: '',
+    selectionBufferUnits: "ft",
+    editPath: "",
     editTools: [],
 };
 
@@ -51,39 +51,44 @@ function setConfigOptions(state, config) {
 }
 
 export default function mapReducer(state = default_view, action) {
-    switch(action.type) {
+    switch (action.type) {
         case MAP.MOVE:
             // 'extent' should be null except for the case when it is being
             //  set in order to zoom there.  After the 'zoom' action happens
             //  it is reset to null.
             const new_view = {
-                extent: null
+                extent: null,
             };
-            for(const key of ['center', 'zoom', 'resolution']) {
-                if(typeof(action[key]) !== 'undefined') {
+            for (const key of ["center", "zoom", "resolution"]) {
+                if (typeof action[key] !== "undefined") {
                     new_view[key] = action[key];
                 }
             }
             return Object.assign({}, state, new_view);
         case MAP.ZOOM_TO_EXTENT:
-            return Object.assign({}, state, {extent: {bbox: action.extent, projection: action.projection}});
+            return Object.assign({}, state, {
+                extent: { bbox: action.extent, projection: action.projection },
+            });
         case MAP.CHANGE_TOOL:
             return Object.assign({}, state, {
                 activeSource: action.src,
-                interactionType: action.tool
-            })
+                interactionType: action.tool,
+            });
         case MAP.ADD_SELECTION_FEATURE:
             return Object.assign({}, state, {
-                selectionFeatures: [action.feature].concat(state.selectionFeatures)
+                selectionFeatures: [action.feature].concat(
+                    state.selectionFeatures
+                ),
             });
         case MAP.CLEAR_SELECTION_FEATURES:
             return Object.assign({}, state, {
-                selectionFeatures: []
+                selectionFeatures: [],
             });
         case MAP.BUFFER_SELECTION_FEATURES:
             return Object.assign({}, state, {
                 selectionBuffer: action.distance,
-                selectionBufferUnits: action.units || state.selectionBufferUnits,
+                selectionBufferUnits:
+                    action.units || state.selectionBufferUnits,
             });
         case CONFIG.SET:
             return setConfigOptions(state, action.payload);
@@ -99,4 +104,4 @@ export default function mapReducer(state = default_view, action) {
         default:
             return state;
     }
-};
+}

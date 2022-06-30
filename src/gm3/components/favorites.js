@@ -22,13 +22,12 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import { Provider, connect } from 'react-redux';
-import { Translation } from 'react-i18next';
+import React from "react";
+import { Provider, connect } from "react-redux";
+import { Translation } from "react-i18next";
 
-import { renderFlatTree } from './catalog';
-import { isFavorite } from './catalog/layer-favorite';
-
+import { renderFlatTree } from "./catalog";
+import { isFavorite } from "./catalog/layer-favorite";
 
 export class FavoriteLayers extends React.Component {
     render() {
@@ -36,23 +35,31 @@ export class FavoriteLayers extends React.Component {
             return isFavorite(this.props.mapSources, layer);
         };
 
-        const favorites = renderFlatTree(this.props.dispatch, this.props.catalog, 'root', this.props.resolution, is_favorite);
+        const favorites = renderFlatTree(
+            this.props.dispatch,
+            this.props.catalog,
+            "root",
+            this.props.resolution,
+            is_favorite
+        );
 
         return (
             <Provider store={this.props.store}>
                 <Translation>
-                    { t => (
+                    {(t) => (
                         <div className="catalog favorites flat">
                             <div
                                 className="info-box"
-                                dangerouslySetInnerHTML={{ __html: t('favorites-help') }} >
-                            </div>
-                            {
-                                favorites.length > 0 ? '' : (
-                                    <i>{t('no-favorites')}</i>
-                                )
-                            }
-                            { favorites }
+                                dangerouslySetInnerHTML={{
+                                    __html: t("favorites-help"),
+                                }}
+                            ></div>
+                            {favorites.length > 0 ? (
+                                ""
+                            ) : (
+                                <i>{t("no-favorites")}</i>
+                            )}
+                            {favorites}
                         </div>
                     )}
                 </Translation>
@@ -61,8 +68,7 @@ export class FavoriteLayers extends React.Component {
     }
 }
 
-
-const mapFavoritesToProps = state => ({
+const mapFavoritesToProps = (state) => ({
     mapSources: state.mapSources,
     catalog: state.catalog,
     resolution: state.map ? state.map.resolution : -1,

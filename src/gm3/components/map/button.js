@@ -1,11 +1,13 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import {withTranslation} from 'react-i18next';
+import React from "react";
+import PropTypes from "prop-types";
+import { withTranslation } from "react-i18next";
 
-const MapButton = ({label, icon, onClick, t, index, disabled}) => {
+const MapButton = ({ label, icon, onClick, t, index, disabled }) => {
     return (
         <div
-            className={`map-button fade-in ${index} ${disabled ? 'disabled' : ''}`}
+            className={`map-button fade-in ${index} ${
+                disabled ? "disabled" : ""
+            }`}
             title={t(label)}
             onClick={onClick}
         >
@@ -15,10 +17,10 @@ const MapButton = ({label, icon, onClick, t, index, disabled}) => {
 };
 
 MapButton.defaultProps = {
-    label: '',
-    icon: '',
+    label: "",
+    icon: "",
     onClick: () => {},
-    t: r => r,
+    t: (r) => r,
     index: 0,
     disabled: false,
 };
