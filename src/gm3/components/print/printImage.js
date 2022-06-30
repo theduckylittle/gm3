@@ -22,34 +22,34 @@
  * SOFTWARE.
  */
 
-import React, { useRef, useEffect, useState } from 'react';
-import { connect } from 'react-redux';
+import React, { useRef, useEffect, useState } from "react";
+import { connect } from "react-redux";
 
-import Map from '../map';
+import Map from "../map";
 
-import { printImage } from '../../actions/print';
+import { printImage } from "../../actions/print";
 
 const getImage = (parentElement, exportSize) => {
     // a derivation of https://openlayers.org/en/latest/examples/export-map.html
-    const mapCanvas = document.createElement('canvas');
+    const mapCanvas = document.createElement("canvas");
     mapCanvas.width = exportSize[0];
     mapCanvas.height = exportSize[1];
 
-    const mapContext = mapCanvas.getContext('2d');
+    const mapContext = mapCanvas.getContext("2d");
 
     if (parentElement) {
-        const canvases = parentElement.getElementsByTagName('canvas');
+        const canvases = parentElement.getElementsByTagName("canvas");
         for (let i = 0, ii = canvases.length; i < ii; i++) {
             const canvas = canvases[i];
             if (canvas.width > 0) {
                 const opacity = canvas.parentNode.style.opacity;
-                mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity);
+                mapContext.globalAlpha = opacity === "" ? 1 : Number(opacity);
                 const transform = canvas.style.transform;
                 // Get the transform parameters from the style's transform matrix
                 const matrix = transform
                     // eslint-disable-next-line
                     .match(/^matrix\(([^\(]*)\)$/)[1]
-                    .split(',')
+                    .split(",")
                     .map(Number);
                 // Apply the transform to the export map context
                 CanvasRenderingContext2D.prototype.setTransform.apply(
@@ -61,17 +61,17 @@ const getImage = (parentElement, exportSize) => {
         }
     }
 
-    return mapCanvas.toDataURL('image/png');
-}
+    return mapCanvas.toDataURL("image/png");
+};
 
-const PrintImage = props => {
-    const [image, setImage] = useState('');
+const PrintImage = (props) => {
+    const [image, setImage] = useState("");
     const parentRef = useRef();
 
     const parentStyle = {
-        display: 'inline-block',
-        width: props.width + 'px',
-        height: props.height + 'px',
+        display: "inline-block",
+        width: props.width + "px",
+        height: props.height + "px",
     };
 
     const center = props.mapView.center;
@@ -79,7 +79,7 @@ const PrintImage = props => {
 
     // empty the print image whenever something changes.
     useEffect(() => {
-        setImage('');
+        setImage("");
     }, [props.width, props.height, center, rez]);
 
     useEffect(() => {
@@ -95,26 +95,30 @@ const PrintImage = props => {
                 printOnly={true}
                 mapRenderedCallback={() => {
                     if (parentRef.current) {
-                        setImage(getImage(parentRef.current, [props.width, props.height]));
+                        setImage(
+                            getImage(parentRef.current, [
+                                props.width,
+                                props.height,
+                            ])
+                        );
                     }
                 }}
             />
         </div>
     );
-}
+};
 
 PrintImage.defaultProps = {
     width: 600,
     height: 400,
 };
 
-const mapToProps = state => ({
+const mapToProps = (state) => ({
     mapView: state.map,
 });
 
 const mapDispatchToProps = {
     printImage,
 };
-
 
 export default connect(mapToProps, mapDispatchToProps)(PrintImage);

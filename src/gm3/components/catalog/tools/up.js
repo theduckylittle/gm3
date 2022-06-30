@@ -22,14 +22,13 @@
  * SOFTWARE.
  */
 
+import React from "react";
+import { connect } from "react-redux";
 
-import React from 'react';
-import { connect } from 'react-redux';
+import { setMapSourceZIndex } from "../../../actions/mapSource";
+import { getLayersByZOrder } from "../../../util";
 
-import { setMapSourceZIndex } from '../../../actions/mapSource';
-import { getLayersByZOrder } from '../../../util';
-
-import { Tool } from '../tools';
+import { Tool } from "../tools";
 
 /* Move the layer up in the stack.
  */
@@ -37,25 +36,32 @@ export class UpTool extends React.Component {
     onClick() {
         // this is the map-source to go "up"
         const up_src = this.props.layer.src[0];
-        const layer_order = getLayersByZOrder(this.props.catalog, this.props.mapSources);
+        const layer_order = getLayersByZOrder(
+            this.props.catalog,
+            this.props.mapSources
+        );
 
         const actions = [];
-        for(let i = 0, ii = layer_order.length; i < ii; i++) {
+        for (let i = 0, ii = layer_order.length; i < ii; i++) {
             const layer = layer_order[i];
-            if(layer.layer.src[0].mapSourceName === up_src.mapSourceName) {
+            if (layer.layer.src[0].mapSourceName === up_src.mapSourceName) {
                 const swap = i + this.props.direction;
-                if(swap >= 0 && swap < ii) {
+                if (swap >= 0 && swap < ii) {
                     const current_z = layer.zIndex;
                     const new_z = layer_order[swap].zIndex;
-                    const other_ms = layer_order[swap].layer.src[0].mapSourceName;
+                    const other_ms =
+                        layer_order[swap].layer.src[0].mapSourceName;
 
-                    actions.push({mapSourceName: up_src.mapSourceName, z: new_z});
-                    actions.push({mapSourceName: other_ms, z: current_z});
+                    actions.push({
+                        mapSourceName: up_src.mapSourceName,
+                        z: new_z,
+                    });
+                    actions.push({ mapSourceName: other_ms, z: current_z });
                 }
             }
         }
 
-        for(let i = 0, ii = actions.length; i < ii; i++) {
+        for (let i = 0, ii = actions.length; i < ii; i++) {
             const action = actions[i];
             this.props.setZIndex(action.mapSourceName, action.z);
         }
@@ -75,11 +81,10 @@ export class UpTool extends React.Component {
 }
 
 UpTool.defaultProps = {
-    tip: 'layer-up-tip',
-    iconClass: 'up',
+    tip: "layer-up-tip",
+    iconClass: "up",
     direction: -1,
-    setZIndex: function() {
-    },
+    setZIndex: function () {},
 };
 
 function mapState(state) {

@@ -22,16 +22,22 @@
  * SOFTWARE.
  */
 
-import { PRINT } from '../actionTypes';
+import { PRINT } from "../actionTypes";
 
 /* Action issued to start a print request.
  */
-export function printRequest(width, height, center, resolution, format = 'image/png') {
+export function printRequest(
+    width,
+    height,
+    center,
+    resolution,
+    format = "image/png"
+) {
     return {
         type: PRINT.REQUEST,
         size: [width, height],
         center: center,
-        resolution: resolution
+        resolution: resolution,
     };
 }
 
@@ -40,7 +46,7 @@ export function printRequest(width, height, center, resolution, format = 'image/
 export function printImage(data) {
     return {
         type: PRINT.IMAGE,
-        data
+        data,
     };
 }
 
@@ -52,6 +58,6 @@ export function printImage(data) {
  */
 export function printed() {
     return {
-        type: PRINT.FINISHED
+        type: PRINT.FINISHED,
     };
 }

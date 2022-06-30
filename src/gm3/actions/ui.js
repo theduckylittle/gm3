@@ -22,29 +22,31 @@
  * SOFTWARE.
  */
 
-import { UI } from '../actionTypes';
+import { UI } from "../actionTypes";
 
 export function setUiHint(hintName) {
     return {
-        type: UI.HINT, hint: hintName
+        type: UI.HINT,
+        hint: hintName,
     };
 }
 
 export function clearUiHint() {
     return {
-        type: UI.CLEAR_HINT
+        type: UI.CLEAR_HINT,
     };
 }
 
 export function runAction(actionName) {
     return {
-        type: UI.RUN_ACTION, action: actionName
-    }
+        type: UI.RUN_ACTION,
+        action: actionName,
+    };
 }
 
 export function clearAction() {
     return {
-        type: UI.CLEAR_ACTION
+        type: UI.CLEAR_ACTION,
     };
 }
 
@@ -58,6 +60,6 @@ export function showModal(modalKey) {
 export function hideModal() {
     return {
         type: UI.SHOW_MODAL,
-        payload: '',
+        payload: "",
     };
 }

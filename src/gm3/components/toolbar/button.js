@@ -26,20 +26,25 @@
  *
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { useTranslation } from 'react-i18next';
+import React from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { useTranslation } from "react-i18next";
 
-import { startService } from '../../actions/service';
-import { runAction, setUiHint } from '../../actions/ui';
-import { setSelectionBuffer, changeTool } from '../../actions/map';
+import { startService } from "../../actions/service";
+import { runAction, setUiHint } from "../../actions/ui";
+import { setSelectionBuffer, changeTool } from "../../actions/map";
 
-export const ToolbarButton = ({tool, onClick, currentService, currentDrawTool}) => {
-    const {t} = useTranslation();
+export const ToolbarButton = ({
+    tool,
+    onClick,
+    currentService,
+    currentDrawTool,
+}) => {
+    const { t } = useTranslation();
     const label = t(tool.label);
 
-    const active = (tool.name === currentService);
+    const active = tool.name === currentService;
 
     return (
         <span
@@ -47,17 +52,19 @@ export const ToolbarButton = ({tool, onClick, currentService, currentDrawTool}) 
                 onClick(tool, currentService, currentDrawTool);
             }}
             key={tool.name}
-            className={`${active ? 'active ' : ''}${tool.cssClass || 'tool ' + tool.name}`}
+            className={`${active ? "active " : ""}${
+                tool.cssClass || "tool " + tool.name
+            }`}
             title={label}
         >
-            <span className='icon'></span><span className='label'>{label}</span>
+            <span className="icon"></span>
+            <span className="label">{label}</span>
         </span>
     );
-}
+};
 
 ToolbarButton.defaultProps = {
-    onClick: (tool, currentService) => {
-    },
+    onClick: (tool, currentService) => {},
 };
 
 ToolbarButton.propTypes = {
@@ -65,7 +72,7 @@ ToolbarButton.propTypes = {
     onClick: PropTypes.func,
 };
 
-const mapState = state => ({
+const mapState = (state) => ({
     currentService: state.query.service,
     currentDrawTool: state.map.interactionType,
 });
@@ -73,13 +80,14 @@ const mapState = state => ({
 function mapDispatch(dispatch, ownProps) {
     return {
         onClick: (tool, currentService, currentDrawTool) => {
-            if(tool.actionType === 'service') {
+            if (tool.actionType === "service") {
                 // start the service
                 dispatch(startService(tool.name));
                 let defaultTool = null;
-                if (ownProps.serviceDef
-                    && ownProps.serviceDef.tools
-                    && ownProps.serviceDef.tools.default
+                if (
+                    ownProps.serviceDef &&
+                    ownProps.serviceDef.tools &&
+                    ownProps.serviceDef.tools.default
                 ) {
                     defaultTool = ownProps.serviceDef.tools.default;
                 }
@@ -92,11 +100,11 @@ function mapDispatch(dispatch, ownProps) {
                     dispatch(changeTool(defaultTool));
                 }
                 // give an indication that a new service has been started
-                dispatch(setUiHint('service-start'));
-            } else if(tool.actionType === 'action') {
+                dispatch(setUiHint("service-start"));
+            } else if (tool.actionType === "action") {
                 dispatch(runAction(tool.name));
             }
-        }
+        },
     };
 }
 

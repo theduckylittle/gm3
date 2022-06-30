@@ -22,59 +22,65 @@
  * SOFTWARE.
  */
 
-import React from 'react';
+import React from "react";
 
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render } from "@testing-library/react";
 
-import { createStore, combineReducers, applyMiddleware } from 'redux';
-import thunk from 'redux-thunk';
+import { createStore, combineReducers, applyMiddleware } from "redux";
+import thunk from "redux-thunk";
 
-import Catalog from 'gm3/components/catalog';
+import Catalog from "gm3/components/catalog";
 
-import reducer from 'gm3/reducers/catalog';
-import msReducer from 'gm3/reducers/mapSource';
-import editorReducer from 'gm3/reducers/editor';
-import mapReducer from 'gm3/reducers/map';
-import queryReducer from 'gm3/reducers/query';
-import * as actions from 'gm3/actions/catalog';
-import * as msActions from 'gm3/actions/mapSource';
+import reducer from "gm3/reducers/catalog";
+import msReducer from "gm3/reducers/mapSource";
+import editorReducer from "gm3/reducers/editor";
+import mapReducer from "gm3/reducers/map";
+import queryReducer from "gm3/reducers/query";
+import * as actions from "gm3/actions/catalog";
+import * as msActions from "gm3/actions/mapSource";
 
-
-describe('Catalog component tests', () => {
-    const store = createStore(combineReducers({
-        'catalog': reducer,
-        'mapSources': msReducer,
-        'editor': editorReducer,
-        'map': mapReducer,
-        'query': queryReducer,
-    }), applyMiddleware(thunk));
+describe("Catalog component tests", () => {
+    const store = createStore(
+        combineReducers({
+            catalog: reducer,
+            mapSources: msReducer,
+            editor: editorReducer,
+            map: mapReducer,
+            query: queryReducer,
+        }),
+        applyMiddleware(thunk)
+    );
 
     let catalog = null;
 
-    beforeEach(function() {
+    beforeEach(function () {
         // setup the map sources
-        store.dispatch(msActions.add({name: 'test', type: 'vector'}));
+        store.dispatch(msActions.add({ name: "test", type: "vector" }));
 
-        store.dispatch(msActions.addLayer('test', {
-            name: 'test0',
-            on: true,
-            label: 'Test 0',
-            legend: {
-                type: 'html',
-                html: 'find-me',
-            },
-            refreshEnabled: false,
-        }));
+        store.dispatch(
+            msActions.addLayer("test", {
+                name: "test0",
+                on: true,
+                label: "Test 0",
+                legend: {
+                    type: "html",
+                    html: "find-me",
+                },
+                refreshEnabled: false,
+            })
+        );
 
-        store.dispatch(msActions.addLayer('test', {
-            name: 'test1',
-            on: false,
-            label: 'Test 1',
-            legend: {
-                type: 'img',
-                images: ['https://geomoose.org/_static/logo_2011.png', ],
-            },
-        }));
+        store.dispatch(
+            msActions.addLayer("test", {
+                name: "test1",
+                on: false,
+                label: "Test 1",
+                legend: {
+                    type: "img",
+                    images: ["https://geomoose.org/_static/logo_2011.png"],
+                },
+            })
+        );
 
         const xml = `
             <catalog>
@@ -90,42 +96,47 @@ describe('Catalog component tests', () => {
             </catalog>`;
 
         const parser = new DOMParser();
-        const catalog_xml = parser.parseFromString(xml, 'text/xml');
-        const results = actions.parseCatalog(store, catalog_xml.getElementsByTagName('catalog')[0]);
+        const catalog_xml = parser.parseFromString(xml, "text/xml");
+        const results = actions.parseCatalog(
+            store,
+            catalog_xml.getElementsByTagName("catalog")[0]
+        );
 
-        results.forEach(action => {
+        results.forEach((action) => {
             store.dispatch(action);
         });
 
-        const {container} = render(<div>
-            <Catalog store={store} />
-        </div>);
+        const { container } = render(
+            <div>
+                <Catalog store={store} />
+            </div>
+        );
 
         catalog = container;
     });
 
-    it('toggles a favorite', function() {
-        fireEvent.click(catalog.querySelector('i.favorite.icon'));
+    it("toggles a favorite", function () {
+        fireEvent.click(catalog.querySelector("i.favorite.icon"));
         expect(store.getState().mapSources.test.layers[0].favorite).toBe(true);
     });
 
-    it('toggles refreshes', function() {
-        fireEvent.click(catalog.querySelector('i.refresh.icon'));
+    it("toggles refreshes", function () {
+        fireEvent.click(catalog.querySelector("i.refresh.icon"));
     });
 
-    it('toggles the group state', function() {
-        fireEvent.click(catalog.querySelector('.group-label'));
-        expect(catalog.querySelector('.gm-expand')).not.toBeNull();
-        fireEvent.click(catalog.querySelector('.group-label'));
-        expect(catalog.querySelector('.gm-collapse')).not.toBeNull();
+    it("toggles the group state", function () {
+        fireEvent.click(catalog.querySelector(".group-label"));
+        expect(catalog.querySelector(".gm-expand")).not.toBeNull();
+        fireEvent.click(catalog.querySelector(".group-label"));
+        expect(catalog.querySelector(".gm-collapse")).not.toBeNull();
     });
 
-    it('triggers a catalog search', function() {
-        fireEvent.change(catalog.querySelector('input'), {value: '1'});
+    it("triggers a catalog search", function () {
+        fireEvent.change(catalog.querySelector("input"), { value: "1" });
     });
 
-    it('toggles layer visibility', function() {
-        fireEvent.click(catalog.querySelector('.checkbox'));
+    it("toggles layer visibility", function () {
+        fireEvent.click(catalog.querySelector(".checkbox"));
         // the layer is on by default
         expect(store.getState().mapSources.test.layers[0].on).toBe(false);
     });

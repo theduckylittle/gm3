@@ -1,16 +1,22 @@
-import React, {useEffect, useCallback} from 'react';
+import React, { useEffect, useCallback } from "react";
 
-import {EDIT_LAYER_NAME} from '../../defaults';
-import {featureToJson} from '../../util';
+import { EDIT_LAYER_NAME } from "../../defaults";
+import { featureToJson } from "../../util";
 
-import MapButton from './button';
+import MapButton from "./button";
 
-const EditLayerControls = ({editPath, saveFeature, olLayers, changeTool, setFeatures}) => {
+const EditLayerControls = ({
+    editPath,
+    saveFeature,
+    olLayers,
+    changeTool,
+    setFeatures,
+}) => {
     const clearChanges = useCallback(() => {
         setFeatures(EDIT_LAYER_NAME, []);
 
         // return the modify tool
-        changeTool('Modify', editPath);
+        changeTool("Modify", editPath);
     }, [changeTool, setFeatures, EDIT_LAYER_NAME]);
 
     // all done, wrap it up, unload features and the tool
@@ -19,31 +25,33 @@ const EditLayerControls = ({editPath, saveFeature, olLayers, changeTool, setFeat
         changeTool(null);
     });
 
-    const saveChanges = useCallback(evt => {
-        // the edit layer should only ever have one feature!
-        const features = olLayers[EDIT_LAYER_NAME]
-            .getSource()
-            .getFeatures()
-            .slice(0, 1)
-            .map(f => featureToJson(f));
+    const saveChanges = useCallback(
+        (evt) => {
+            // the edit layer should only ever have one feature!
+            const features = olLayers[EDIT_LAYER_NAME].getSource()
+                .getFeatures()
+                .slice(0, 1)
+                .map((f) => featureToJson(f));
 
-        if (features.length > 0) {
-            const feature = features[0];
-            saveFeature(editPath, feature);
-            clearChanges();
-        }
-    }, [olLayers, EDIT_LAYER_NAME]);
+            if (features.length > 0) {
+                const feature = features[0];
+                saveFeature(editPath, feature);
+                clearChanges();
+            }
+        },
+        [olLayers, EDIT_LAYER_NAME]
+    );
 
     useEffect(() => {
-        const keyFn = evt => {
+        const keyFn = (evt) => {
             let prevent = false;
-            if (evt.key === 'Escape') {
+            if (evt.key === "Escape") {
                 clearChanges();
                 prevent = true;
-            } else if (evt.key === 's' && evt.ctrlKey) {
+            } else if (evt.key === "s" && evt.ctrlKey) {
                 saveChanges();
                 prevent = true;
-            } else if (evt.key === 'x' && evt.ctrlKey) {
+            } else if (evt.key === "x" && evt.ctrlKey) {
                 done();
                 prevent = true;
             }
@@ -54,9 +62,9 @@ const EditLayerControls = ({editPath, saveFeature, olLayers, changeTool, setFeat
             }
         };
 
-        document.addEventListener('keydown', keyFn);
+        document.addEventListener("keydown", keyFn);
         return () => {
-            document.removeEventListener('keydown', keyFn);
+            document.removeEventListener("keydown", keyFn);
         };
     }, [clearChanges, saveChanges]);
 
@@ -91,27 +99,26 @@ const EditLayerControls = ({editPath, saveFeature, olLayers, changeTool, setFeat
             />
         </React.Fragment>
     );
-}
+};
 
-
-const StopControl = ({changeTool, setFeatures}) => {
+const StopControl = ({ changeTool, setFeatures }) => {
     const done = useCallback(() => {
         setFeatures(EDIT_LAYER_NAME, []);
         changeTool(null);
     });
 
     useEffect(() => {
-        const keyFn = evt => {
-            if (evt.key === 'Escape') {
+        const keyFn = (evt) => {
+            if (evt.key === "Escape") {
                 done();
                 evt.preventDefault();
-                evt.stopPropagation()
+                evt.stopPropagation();
             }
         };
 
-        document.addEventListener('keydown', keyFn);
+        document.addEventListener("keydown", keyFn);
         return () => {
-            document.removeEventListener('keydown', keyFn);
+            document.removeEventListener("keydown", keyFn);
         };
     }, [changeTool]);
 
@@ -123,24 +130,24 @@ const StopControl = ({changeTool, setFeatures}) => {
             onClick={() => done()}
         />
     );
-}
+};
 
 const ICON_CLASSES = {
-    'draw-point': 'point',
-    'draw-polygon': 'polygon',
-    'draw-line': 'line',
-    'draw-modify': 'modify',
-    'draw-remove': 'remove',
-    'draw-edit': 'edit',
+    "draw-point": "point",
+    "draw-polygon": "polygon",
+    "draw-line": "line",
+    "draw-modify": "modify",
+    "draw-remove": "remove",
+    "draw-edit": "edit",
 };
 
 const DRAW_TYPES = {
-    'draw-remove': 'Remove',
-    'draw-modify': 'Modify',
-    'draw-point': 'Point',
-    'draw-line': 'LineString',
-    'draw-polygon': 'Polygon',
-    'draw-edit': 'Edit',
+    "draw-remove": "Remove",
+    "draw-modify": "Modify",
+    "draw-point": "Point",
+    "draw-line": "LineString",
+    "draw-polygon": "Polygon",
+    "draw-edit": "Edit",
 };
 
 const DrawTools = ({
@@ -167,13 +174,13 @@ const DrawTools = ({
                 icon="icon close"
                 index={editTools.length + 2}
                 onClick={() => {
-                    setEditPath('');
+                    setEditPath("");
                     setEditTools([]);
                 }}
             />
         </React.Fragment>
     );
-}
+};
 
 const ContextControls = ({
     changeTool,
@@ -187,9 +194,8 @@ const ContextControls = ({
     setZoom,
     setEditPath,
     setEditTools,
-    zoom
+    zoom,
 }) => {
-
     let controls = false;
     // do not bother rendering anything if the interaction is null
     if (!interactionType && editPath) {
@@ -203,7 +209,8 @@ const ContextControls = ({
             />
         );
     } else if (
-        interactionType && interactionType.indexOf('Modify') >= 0 &&
+        interactionType &&
+        interactionType.indexOf("Modify") >= 0 &&
         activeSource === `${EDIT_LAYER_NAME}/${EDIT_LAYER_NAME}`
     ) {
         controls = (
@@ -215,12 +222,9 @@ const ContextControls = ({
                 setFeatures={setFeatures}
             />
         );
-    } else if (!!interactionType) {
+    } else if (interactionType) {
         controls = (
-            <StopControl
-                changeTool={changeTool}
-                setFeatures={setFeatures}
-            />
+            <StopControl changeTool={changeTool} setFeatures={setFeatures} />
         );
     }
 
@@ -240,10 +244,10 @@ const ContextControls = ({
                 onClick={() => setZoom(zoom - 1)}
             />
 
-            <span style={{display: 'inline-block', width: 16}}></span>
+            <span style={{ display: "inline-block", width: 16 }}></span>
             {controls}
         </React.Fragment>
-    )
-}
+    );
+};
 
 export default ContextControls;

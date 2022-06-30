@@ -22,14 +22,13 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import { connect } from 'react-redux';
+import React from "react";
+import { connect } from "react-redux";
 
-import { zoomToExtent } from '../../../actions/map';
-import { getFeaturesExtent } from '../../../util';
+import { zoomToExtent } from "../../../actions/map";
+import { getFeaturesExtent } from "../../../util";
 
-import { Tool } from '../tools';
-
+import { Tool } from "../tools";
 
 /** Zoom the the extent of a vector layer's features.
  *
@@ -38,14 +37,16 @@ export class ZoomToTool extends React.Component {
     render() {
         return (
             <Tool
-                tip='zoomto-tip'
-                iconClass='zoomto'
+                tip="zoomto-tip"
+                iconClass="zoomto"
                 onClick={() => {
                     const src = this.props.layer.src[0];
-                    const extent = getFeaturesExtent(this.props.mapSources[src.mapSourceName]);
+                    const extent = getFeaturesExtent(
+                        this.props.mapSources[src.mapSourceName]
+                    );
                     // ensure the extent is not null,
                     // which happens when there are no features on the layer.
-                    if(extent[0] !== null) {
+                    if (extent[0] !== null) {
                         this.props.onZoomTo(extent);
                     }
                 }}

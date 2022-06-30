@@ -22,19 +22,19 @@
  * SOFTWARE.
  */
 
-import { SERVICE } from '../actionTypes';
+import { SERVICE } from "../actionTypes";
 
 export function finishService() {
     return {
-        type: SERVICE.FINISH
-    }
+        type: SERVICE.FINISH,
+    };
 }
 
 export function startService(serviceName) {
     return {
         type: SERVICE.START,
-        service: serviceName
-    }
+        service: serviceName,
+    };
 }
 
 export function showServiceForm(show) {

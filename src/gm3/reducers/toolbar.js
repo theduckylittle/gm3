@@ -26,7 +26,7 @@
  *
  */
 
-import { TOOLBAR } from '../actionTypes';
+import { TOOLBAR } from "../actionTypes";
 
 /*
  * TOOLBAR tool definition
@@ -45,25 +45,25 @@ import { TOOLBAR } from '../actionTypes';
 const default_state = {};
 
 export default function toolbarReducer(state = default_state, action) {
-    switch(action.type) {
+    switch (action.type) {
         case TOOLBAR.ADD:
             // tools in drawers will have a different "root",
             //  the  base "root" is what is shown in the toolbar itself
-            const root = action.root ? action.root : 'root';
+            const root = action.root ? action.root : "root";
 
             // get the 'order' placement, should be first or last
-            const order = action.order ? action.order : 'last';
+            const order = action.order ? action.order : "last";
 
             // fresh bake a state
             const new_state = Object.assign({}, state);
 
             // add a so-fresh-so-clean drawer node
             //  if it doesn't exist.
-            if(!new_state[root]) {
+            if (!new_state[root]) {
                 new_state[root] = [];
             }
 
-            if(order === 'first') {
+            if (order === "first") {
                 new_state[root].unshift(action.tool);
             } else {
                 new_state[root].push(action.tool);
@@ -74,10 +74,10 @@ export default function toolbarReducer(state = default_state, action) {
             // make a copy of the tools list but do not include
             //  the tool to be removed.
             const st = {};
-            for(const root in state) {
+            for (const root in state) {
                 st[root] = [];
-                for(const item of state[root]) {
-                    if(item.name !== action.name) {
+                for (const item of state[root]) {
+                    if (item.name !== action.name) {
                         st[root].push(item);
                     }
                 }
@@ -86,4 +86,4 @@ export default function toolbarReducer(state = default_state, action) {
         default:
             return state;
     }
-};
+}

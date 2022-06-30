@@ -22,10 +22,9 @@
  * SOFTWARE.
  */
 
-import { parseToolbar } from 'gm3/actions/toolbar';
+import { parseToolbar } from "gm3/actions/toolbar";
 
-describe('test the toolbar parser', () => {
-
+describe("test the toolbar parser", () => {
     const toolbarXml = `
         <toolbar>
             <tool name="findme" title="Find Me" type="action"/>
@@ -36,15 +35,14 @@ describe('test the toolbar parser', () => {
             </drawer>
         </toolbar>`;
 
-    it('parses the xml', () => {
+    it("parses the xml", () => {
         const parser = new DOMParser();
-        const xml = parser.parseFromString(toolbarXml, 'text/xml');
-        const results = parseToolbar(xml.getElementsByTagName('toolbar')[0]);
+        const xml = parser.parseFromString(toolbarXml, "text/xml");
+        const results = parseToolbar(xml.getElementsByTagName("toolbar")[0]);
         expect(results).toBeDefined();
     });
 
-    it('should return no actions when the toolbar is undefined', () => {
+    it("should return no actions when the toolbar is undefined", () => {
         expect(parseToolbar(undefined).length).toBe(0);
     });
-
 });

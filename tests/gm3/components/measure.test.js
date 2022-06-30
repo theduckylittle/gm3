@@ -22,15 +22,14 @@
  * SOFTWARE.
  */
 
-import * as measure from 'gm3/components/measure';
-import Application from 'gm3/application';
+import * as measure from "gm3/components/measure";
+import Application from "gm3/application";
 
 /*
  * Test getBearing()
  */
 
-describe('getBearing tests', () => {
-
+describe("getBearing tests", () => {
     const app = new Application();
 
     // const m = shallow(
@@ -39,31 +38,35 @@ describe('getBearing tests', () => {
 
     const pointA = [0, 0];
 
-    const m = new measure.MeasureTool({t: s => s, store: app.store});
+    const m = new measure.MeasureTool({ t: (s) => s, store: app.store });
     // console.log(m);
 
-    test('Test Due North', () => {
+    test("Test Due North", () => {
         const pointB = [0, 1];
-        expect(m.getBearing(pointA, pointB)).toBe('measure-due-north');
+        expect(m.getBearing(pointA, pointB)).toBe("measure-due-north");
     });
-    test('Test Due East', () => {
+    test("Test Due East", () => {
         const pointB = [1, 0];
-        expect(m.getBearing(pointA, pointB)).toBe('measure-due-east');
+        expect(m.getBearing(pointA, pointB)).toBe("measure-due-east");
     });
-    test('Test Due South', () => {
+    test("Test Due South", () => {
         const pointB = [0, -1];
-        expect(m.getBearing(pointA, pointB)).toBe('measure-due-south');
+        expect(m.getBearing(pointA, pointB)).toBe("measure-due-south");
     });
-    test('Test Due West', () => {
+    test("Test Due West", () => {
         const pointB = [-1, 0];
-        expect(m.getBearing(pointA, pointB)).toBe('measure-due-west');
+        expect(m.getBearing(pointA, pointB)).toBe("measure-due-west");
     });
-    test('Test NE Quad', () => {
+    test("Test NE Quad", () => {
         const pointB = [1, 1];
-        expect(m.getBearing(pointA, pointB)).toBe('measure-north-abbr45-0-0measure-east-abbr');
+        expect(m.getBearing(pointA, pointB)).toBe(
+            "measure-north-abbr45-0-0measure-east-abbr"
+        );
     });
-    test('Test SW Quad', () => {
+    test("Test SW Quad", () => {
         const pointB = [-1, -1];
-        expect(m.getBearing(pointA, pointB)).toBe('measure-south-abbr45-0-0measure-west-abbr');
+        expect(m.getBearing(pointA, pointB)).toBe(
+            "measure-south-abbr45-0-0measure-west-abbr"
+        );
     });
 });

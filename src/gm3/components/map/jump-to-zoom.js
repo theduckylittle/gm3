@@ -22,33 +22,35 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
+import React from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 
-import {setView} from '../../actions/map';
+import { setView } from "../../actions/map";
 
-const renderJumper = props => {
+const renderJumper = (props) => {
     const zoomLevels = [];
     for (let i = props.minZoom; i <= props.maxZoom; i++) {
         zoomLevels.push(i);
     }
     return (
-        <div className='jump-to-zoom'>
-            Zoom:{' '}
+        <div className="jump-to-zoom">
+            Zoom:{" "}
             <select
                 value={props.zoom}
-                onChange={evt => {
+                onChange={(evt) => {
                     props.setZoom(evt.target.value);
                 }}
             >
-                {zoomLevels.map(level => (
-                    <option key={level} value={level}>{level}</option>
+                {zoomLevels.map((level) => (
+                    <option key={level} value={level}>
+                        {level}
+                    </option>
                 ))}
             </select>
         </div>
     );
-}
+};
 
 // TODO: This is a temporary shim until React is upgraded and
 //       a pure functional component can be used.
@@ -72,16 +74,16 @@ JumpToZoom.defaultProps = {
     setZoom: () => {},
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
     // there are times when zoom can be set to null,
     //  the || prevents an error with the <select />
     //  from throwing an error when the value gets set to null.
     zoom: state.map.zoom || 1,
 });
 
-const mapDispatchToProps = dispatch => ({
-    setZoom: zoom => {
-        dispatch(setView({zoom, }));
+const mapDispatchToProps = (dispatch) => ({
+    setZoom: (zoom) => {
+        dispatch(setView({ zoom }));
     },
 });
 

@@ -22,54 +22,58 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import { connect } from 'react-redux';
-import { useTranslation } from 'react-i18next';
+import React from "react";
+import { connect } from "react-redux";
+import { useTranslation } from "react-i18next";
 
-import { changeTool } from '../actions/map';
+import { changeTool } from "../actions/map";
 
-import { getSelectableLayers, getLayerFromSources } from '../actions/mapSource';
+import { getSelectableLayers, getLayerFromSources } from "../actions/mapSource";
 
-import { getMapSourceName, getLayerName } from '../util';
+import { getMapSourceName, getLayerName } from "../util";
 
-const ToolLabel = ({label}) => {
-    const {t} = useTranslation();
+const ToolLabel = ({ label }) => {
+    const { t } = useTranslation();
     return t(label);
 };
 
 class DrawTool extends React.Component {
-
     constructor(props) {
         super(props);
 
         this.changeSelectLayer = this.changeSelectLayer.bind(this);
 
         this.state = {
-            selectLayer: null
-        }
+            selectLayer: null,
+        };
 
-        if(this.props.geomType === 'Select') {
+        if (this.props.geomType === "Select") {
             this.state.selectLayer = this.props.selectableLayers[0];
         }
-
     }
 
     changeSelectLayer(event) {
-        this.setState({selectLayer: event.target.value});
+        this.setState({ selectLayer: event.target.value });
     }
 
     getSelectOptions() {
         const options = [];
 
-        for(let i = 0, ii = this.props.selectableLayers.length; i < ii; i++) {
+        for (let i = 0, ii = this.props.selectableLayers.length; i < ii; i++) {
             const path = this.props.selectableLayers[i];
             const source_name = getMapSourceName(path);
             const layer_name = getLayerName(path);
 
-            const label = getLayerFromSources(this.props.mapSources, source_name, layer_name).label;
-            options.push((
-                <option key={ path } value={ path }>{ label }</option>
-            ));
+            const label = getLayerFromSources(
+                this.props.mapSources,
+                source_name,
+                layer_name
+            ).label;
+            options.push(
+                <option key={path} value={path}>
+                    {label}
+                </option>
+            );
         }
 
         return options;
@@ -78,50 +82,55 @@ class DrawTool extends React.Component {
     componentDidMount() {
         // if starting up with the select tool,
         //  ensure there is a valid active layer.
-        if (this.props.interactionType === 'Select' && this.props.geomType === 'Select') {
+        if (
+            this.props.interactionType === "Select" &&
+            this.props.geomType === "Select"
+        ) {
             const firstLayer = this.props.selectableLayers[0];
-            this.setState({selectLayer: firstLayer});
-            this.props.onChange('Select', firstLayer);
+            this.setState({ selectLayer: firstLayer });
+            this.props.onChange("Select", firstLayer);
         }
     }
 
     render() {
         const gtype = this.props.geomType;
 
-        let tool_class = 'draw-tool';
+        let tool_class = "draw-tool";
 
-        let select_options = '';
-
+        let select_options = "";
 
         // ensures the state of the drawing tool
         // matches what is checked.
-        if(this.props.interactionType === gtype) {
-            tool_class += ' selected';
+        if (this.props.interactionType === gtype) {
+            tool_class += " selected";
         }
 
         const tool_label = `draw-${gtype.toLowerCase()}-label`;
 
-        if(gtype === 'Select') {
+        if (gtype === "Select") {
             select_options = (
-                <select value={ this.state.selectLayer } onChange={ this.changeSelectLayer }>
-                    { this.getSelectOptions() }
+                <select
+                    value={this.state.selectLayer}
+                    onChange={this.changeSelectLayer}
+                >
+                    {this.getSelectOptions()}
                 </select>
             );
         }
 
         return (
             <div
-                key={'draw-tool-' + gtype}
+                key={"draw-tool-" + gtype}
                 className={tool_class}
-                onClick={ () => {
+                onClick={() => {
                     this.props.onChange(gtype, this.state.selectLayer);
-                }}>
-                <i className='radio-icon'></i>
+                }}
+            >
+                <i className="radio-icon"></i>
                 <ToolLabel label={tool_label} />
-                { select_options }
+                {select_options}
             </div>
         );
-
     }
 }
 
@@ -130,7 +139,7 @@ function mapState(state) {
         interactionType: state.map.interactionType,
         mapSources: state.mapSources,
         selectableLayers: getSelectableLayers(state.mapSources),
-    }
+    };
 }
 
 function mapDispatch(dispatch) {
@@ -138,7 +147,7 @@ function mapDispatch(dispatch) {
         onChange: (type, layer) => {
             dispatch(changeTool(type, layer));
         },
-    }
+    };
 }
 
 export default connect(mapState, mapDispatch)(DrawTool);

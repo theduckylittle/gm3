@@ -21,27 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import React from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import React from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 
-import { changeTool } from '../../../actions/map';
-import { finishService } from '../../../actions/service';
-import { Tool } from '../tools';
+import { changeTool } from "../../../actions/map";
+import { finishService } from "../../../actions/service";
+import { Tool } from "../tools";
 
 const DRAW_TYPES = {
-    'remove': 'Remove',
-    'modify': 'Modify',
-    'point': 'Point',
-    'line': 'LineString',
-    'polygon': 'Polygon',
-    'edit': 'Edit',
+    remove: "Remove",
+    modify: "Modify",
+    point: "Point",
+    line: "LineString",
+    polygon: "Polygon",
+    edit: "Edit",
 };
 
-
-export const DrawTool = ({layer, drawType, changeTool, interactionType, activeSource, service, finishService}) => {
+export const DrawTool = ({
+    layer,
+    drawType,
+    changeTool,
+    interactionType,
+    activeSource,
+    service,
+    finishService,
+}) => {
     const src = layer.src[0];
-    const path = src.mapSourceName + '/' + src.layerName;
+    const path = src.mapSourceName + "/" + src.layerName;
 
     return (
         <Tool
@@ -53,10 +60,13 @@ export const DrawTool = ({layer, drawType, changeTool, interactionType, activeSo
                 }
                 changeTool(DRAW_TYPES[drawType], path);
             }}
-            active={DRAW_TYPES[drawType] === interactionType && path === activeSource}
+            active={
+                DRAW_TYPES[drawType] === interactionType &&
+                path === activeSource
+            }
         />
     );
-}
+};
 
 DrawTool.propTypes = {
     changeTool: PropTypes.func,
@@ -65,12 +75,11 @@ DrawTool.propTypes = {
 };
 
 DrawTool.defaultProps = {
-    changeTool: () => {
-    },
-    drawType: 'point',
+    changeTool: () => {},
+    drawType: "point",
 };
 
-const mapState = state => ({
+const mapState = (state) => ({
     activeSource: state.map.activeSource,
     interactionType: state.map.interactionType,
     service: state.query.service,

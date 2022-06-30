@@ -22,19 +22,18 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import React from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 
-import { setRefresh } from '../../../actions/mapSource';
+import { setRefresh } from "../../../actions/mapSource";
 
-import { Tool } from '../tools';
-
+import { Tool } from "../tools";
 
 export function isRefreshingOn(mapSources, layer) {
-    for(let i = 0, ii = layer.src.length; i < ii; i++) {
+    for (let i = 0, ii = layer.src.length; i < ii; i++) {
         const src = layer.src[i];
-        if(mapSources[src.mapSourceName].refresh) {
+        if (mapSources[src.mapSourceName].refresh) {
             return true;
         }
     }
@@ -42,19 +41,21 @@ export function isRefreshingOn(mapSources, layer) {
     return false;
 }
 
-
 export class LayerRefresh extends React.Component {
     render() {
-        const refreshing = isRefreshingOn(this.props.mapSources, this.props.layer);
+        const refreshing = isRefreshingOn(
+            this.props.mapSources,
+            this.props.layer
+        );
 
-        let classes = 'refresh';
-        if(refreshing) {
-            classes += ' on';
+        let classes = "refresh";
+        if (refreshing) {
+            classes += " on";
         }
 
         return (
             <Tool
-                tip='layer-refresh-tip'
+                tip="layer-refresh-tip"
                 iconClass={classes}
                 onClick={() => {
                     this.props.onToggleRefresh(this.props.layer, !refreshing);
@@ -82,12 +83,12 @@ function mapDispatchProps(dispatch) {
             // turn off refreshing by setting it to null.
             const seconds = refresh ? layer.refresh : null;
 
-            for(let i = 0, ii = layer.src.length; i < ii; i++) {
+            for (let i = 0, ii = layer.src.length; i < ii; i++) {
                 const src = layer.src[i];
                 dispatch(setRefresh(src.mapSourceName, seconds));
             }
         },
-    }
+    };
 }
 
 export default connect(mapStateProps, mapDispatchProps)(LayerRefresh);

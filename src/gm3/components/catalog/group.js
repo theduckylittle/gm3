@@ -21,20 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from "react";
+import PropTypes from "prop-types";
 
 export default class CatalogGroup extends React.Component {
     render() {
         const group = this.props.group;
 
-        let classes = 'group';
-        let is_open = '';
-        if(group.expand) {
-            classes += ' gm-expand';
-            is_open = 'open';
+        let classes = "group";
+        let is_open = "";
+        if (group.expand) {
+            classes += " gm-expand";
+            is_open = "open";
         } else {
-            classes += ' gm-collapse';
+            classes += " gm-collapse";
         }
 
         return (
@@ -43,21 +43,19 @@ export default class CatalogGroup extends React.Component {
                     onClick={() => {
                         this.props.onExpand();
                     }}
-                    className='group-label'
+                    className="group-label"
                 >
-                    <i className={'folder icon ' + is_open}></i>{group.label}
+                    <i className={"folder icon " + is_open}></i>
+                    {group.label}
                 </div>
-                <div className='children'>
-                    { this.props.children }
-                </div>
+                <div className="children">{this.props.children}</div>
             </div>
         );
     }
 }
 
 CatalogGroup.defaultProps = {
-    onExpand: () => {
-    },
+    onExpand: () => {},
 };
 
 CatalogGroup.propTypes = {

@@ -31,19 +31,17 @@
  * @extends TextInput
  */
 
-import React, {useState, useEffect} from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
-import TextInput, {getId} from './text';
+import TextInput, { getId } from "./text";
 
-const UNITS = [
-    'ft', 'yd', 'mi', 'in', 'm', 'km', 'ch'
-];
+const UNITS = ["ft", "yd", "mi", "in", "m", "km", "ch"];
 
-export const LengthInputBase = ({label, value, units, onChange}) => {
-    const id = 'input-' + getId();
+export const LengthInputBase = ({ label, value, units, onChange }) => {
+    const id = "input-" + getId();
     const [tmpValue, setValue] = useState(value);
-    const {t} = useTranslation();
+    const { t } = useTranslation();
 
     useEffect(() => {
         setValue(value);
@@ -54,7 +52,7 @@ export const LengthInputBase = ({label, value, units, onChange}) => {
             <label htmlFor={id}>{label}</label>
             <input
                 className="measure"
-                onChange={evt => {
+                onChange={(evt) => {
                     setValue(evt.target.value);
                     const asFloat = parseFloat(evt.target.value);
                     if (!isNaN(asFloat)) {
@@ -66,26 +64,27 @@ export const LengthInputBase = ({label, value, units, onChange}) => {
             />
             <select
                 className="units"
-                onChange={evt => {
+                onChange={(evt) => {
                     onChange(value, evt.target.value);
                 }}
                 value={units}
             >
-                {UNITS.map(unit => (
-                    <option key={unit} value={unit}>{t(`units-${unit}`)}</option>
+                {UNITS.map((unit) => (
+                    <option key={unit} value={unit}>
+                        {t(`units-${unit}`)}
+                    </option>
                 ))}
             </select>
         </div>
     );
-}
-
+};
 
 export default class LengthInput extends TextInput {
     constructor(props) {
         super(props);
 
         // default the units to feet, if nothing is specified.
-        const default_units = props.field.units ? props.field.units : 'ft';
+        const default_units = props.field.units ? props.field.units : "ft";
         const default_value = props.field.default ? props.field.default : 0;
 
         this.value = default_value;
@@ -101,7 +100,7 @@ export default class LengthInput extends TextInput {
     }
 
     onChange(value, units) {
-        if(!isNaN(this.state.value)) {
+        if (!isNaN(this.state.value)) {
             this.setValue(this.getName(), {
                 distance: this.state.value,
                 units: this.state.units,
@@ -114,7 +113,7 @@ export default class LengthInput extends TextInput {
     onUnitsChanged(evt) {
         const units = evt.target.value;
         this.onChange(this.state.value, units);
-        this.setState({units, });
+        this.setState({ units });
     }
 
     /** Whenever the input box changes, parse the value and update it.
@@ -122,7 +121,7 @@ export default class LengthInput extends TextInput {
     onValueChanged(evt) {
         const value = parseFloat(evt.target.value);
         this.onChange(value, this.state.units);
-        this.setState({value, });
+        this.setState({ value });
     }
 
     componentDidUpdate(prevProps) {
@@ -142,7 +141,7 @@ export default class LengthInput extends TextInput {
                 units={this.state.units}
                 onChange={(value, units) => {
                     this.onChange(value, units);
-                    this.setState({value, units});
+                    this.setState({ value, units });
                 }}
             />
         );

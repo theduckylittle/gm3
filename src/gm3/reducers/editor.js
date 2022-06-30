@@ -22,37 +22,37 @@
  * SOFTWARE.
  */
 
-import {EDITOR} from '../actionTypes';
+import { EDITOR } from "../actionTypes";
 
 const defaultState = {
     feature: null,
-    source: '',
-    modal: '',
+    source: "",
+    modal: "",
 };
 
 const EditorReducer = (state = defaultState, action = {}) => {
-    switch(action.type) {
+    switch (action.type) {
         case EDITOR.START_EDIT:
             return {
                 ...state,
                 feature: action.feature,
-                source: action.source || '',
+                source: action.source || "",
                 isNew: action.isNew === true,
-                modal: 'edit',
+                modal: "edit",
             };
         case EDITOR.FINISH_EDIT:
             return {
                 ...state,
                 feature: null,
-                source: '',
-                modal: '',
+                source: "",
+                modal: "",
             };
         case EDITOR.REMOVE:
             return {
                 ...state,
                 feature: action.feature,
-                source: action.source || '',
-                modal: 'remove',
+                source: action.source || "",
+                modal: "remove",
             };
         default:
             return state;

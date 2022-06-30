@@ -22,16 +22,15 @@
  * SOFTWARE.
  */
 
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
-import { connect } from 'react-redux';
+import { connect } from "react-redux";
 
-import { getLegend } from '../map';
+import { getLegend } from "../map";
 
-import { isLayerOn } from '../../util';
+import { isLayerOn } from "../../util";
 
 class CatalogLegend extends Component {
-
     constructor(props) {
         super(props);
 
@@ -39,7 +38,7 @@ class CatalogLegend extends Component {
     }
 
     htmlLegend(html) {
-        return {__html: html};
+        return { __html: html };
     }
 
     renderLegend(src) {
@@ -49,27 +48,39 @@ class CatalogLegend extends Component {
             src.layerName
         );
 
-        const key = 'legend_' + src.mapSourceName + '_' + src.layerName;
+        const key = "legend_" + src.mapSourceName + "_" + src.layerName;
         let legend_idx = 0;
 
-        switch(legend.type) {
-            case 'html':
+        switch (legend.type) {
+            case "html":
                 return (
                     <div
                         key={key}
-                        className='legend-html'
+                        className="legend-html"
                         dangerouslySetInnerHTML={this.htmlLegend(legend.html)}
                     />
                 );
-            case 'img':
+            case "img":
                 const img_tags = [];
                 legend_idx = 0;
-                for(const img_src of legend.images) {
-                    img_tags.push((<img alt='layer legend' key={key + legend_idx} className='legend-image' src={img_src}/>));
+                for (const img_src of legend.images) {
+                    img_tags.push(
+                        <img
+                            alt="layer legend"
+                            key={key + legend_idx}
+                            className="legend-image"
+                            src={img_src}
+                        />
+                    );
                     legend_idx += 1;
                 }
-                return (<div key={key} className='legend-images'> { img_tags } </div>);
-            case 'nolegend':
+                return (
+                    <div key={key} className="legend-images">
+                        {" "}
+                        {img_tags}{" "}
+                    </div>
+                );
+            case "nolegend":
             default:
                 // no legend, no DOM'ing.
                 return false;
@@ -83,24 +94,24 @@ class CatalogLegend extends Component {
 
         // short the rendering a legend if the layer
         // is not on.
-        if(!isLayerOn(this.props.mapSources, layer)) {
+        if (!isLayerOn(this.props.mapSources, layer)) {
             return false;
         }
 
         // put a legend on it.
-        return (<div className='catalog-legend'>
-            { layer.src.map(this.renderLegend) }
-        </div>);
+        return (
+            <div className="catalog-legend">
+                {layer.src.map(this.renderLegend)}
+            </div>
+        );
     }
 }
 
-
-const mapCatalogToProps = function(store) {
+const mapCatalogToProps = function (store) {
     return {
         mapSources: store.mapSources,
-        mapView: store.map
-    }
-}
-
+        mapView: store.map,
+    };
+};
 
 export default connect(mapCatalogToProps)(CatalogLegend);

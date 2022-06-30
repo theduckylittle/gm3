@@ -22,27 +22,27 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import {withTranslation} from 'react-i18next';
+import React from "react";
+import { withTranslation } from "react-i18next";
 
-import TextInput from './serviceInputs/text';
-import SelectInput from './serviceInputs/select';
-import LengthInput from './serviceInputs/length';
-import LayersInput from './serviceInputs/layersList';
-import BufferInput from './serviceInputs/buffer';
+import TextInput from "./serviceInputs/text";
+import SelectInput from "./serviceInputs/select";
+import LengthInput from "./serviceInputs/length";
+import LayersInput from "./serviceInputs/layersList";
+import BufferInput from "./serviceInputs/buffer";
 
-import DrawTool from './drawTool';
+import DrawTool from "./drawTool";
 
 function renderServiceField(fieldDef, value, onChange) {
     let InputClass = TextInput;
 
-    if (fieldDef.type === 'select') {
+    if (fieldDef.type === "select") {
         InputClass = SelectInput;
-    } else if (fieldDef.type === 'length') {
+    } else if (fieldDef.type === "length") {
         InputClass = LengthInput;
-    } else if (fieldDef.type === 'layers-list') {
+    } else if (fieldDef.type === "layers-list") {
         InputClass = LayersInput;
-    } else if(fieldDef.type === 'hidden') {
+    } else if (fieldDef.type === "hidden") {
         // render nothing and like it.
         return false;
     }
@@ -67,7 +67,6 @@ function getDefaultValues(serviceDef) {
     return values;
 }
 
-
 class ServiceForm extends React.Component {
     constructor(props) {
         super(props);
@@ -86,15 +85,18 @@ class ServiceForm extends React.Component {
         let validateFieldValuesResultValid = true;
         let validateFieldValuesResultMessage = null;
         if (service_def.validateFieldValues) {
-            const validateFieldValuesResult = service_def.validateFieldValues(this.state.values);
+            const validateFieldValuesResult = service_def.validateFieldValues(
+                this.state.values
+            );
             validateFieldValuesResultValid = validateFieldValuesResult.valid;
-            validateFieldValuesResultMessage = validateFieldValuesResult.message;
+            validateFieldValuesResultMessage =
+                validateFieldValuesResult.message;
         }
         if (validateFieldValuesResultValid) {
             this.props.onSubmit(this.state.values);
         } else {
             // update state validation message
-            this.setState( {validateFieldValuesResultMessage} );
+            this.setState({ validateFieldValuesResultMessage });
         }
     }
 
@@ -106,18 +108,17 @@ class ServiceForm extends React.Component {
      */
     handleKeyboardShortcuts(evt) {
         const code = evt.which;
-        if(code === 13) {
+        if (code === 13) {
             this.submit();
-        } else if(code === 27) {
+        } else if (code === 27) {
             this.props.onCancel();
         }
     }
 
     UNSAFE_componentWillUpdate(nextProps, nextState) {
         if (
-            nextProps.serviceDef !== null && (
-                this.props.serviceName !== nextProps.serviceName
-            )
+            nextProps.serviceDef !== null &&
+            this.props.serviceName !== nextProps.serviceName
         ) {
             // 'rotate' the current service to the next services.
             this.setState({
@@ -128,11 +129,11 @@ class ServiceForm extends React.Component {
     }
 
     componentDidMount() {
-        document.addEventListener('keyup', this.handleKeyboard);
+        document.addEventListener("keyup", this.handleKeyboard);
     }
 
     componentWillUnmount() {
-        document.removeEventListener('keyup', this.handleKeyboard);
+        document.removeEventListener("keyup", this.handleKeyboard);
     }
 
     render() {
@@ -142,11 +143,21 @@ class ServiceForm extends React.Component {
 
         const draw_tools = [];
         if (service_def.drawToolsLabel) {
-            draw_tools.push((<label key='label'>{ service_def.drawToolsLabel }</label>));
+            draw_tools.push(
+                <label key="label">{service_def.drawToolsLabel}</label>
+            );
         }
-        for(const gtype of ['Box', 'Point', 'MultiPoint', 'LineString', 'Polygon', 'Select', 'Modify']) {
-            const dt_key = 'draw_tool_' + gtype;
-            if(service_def.tools[gtype]) {
+        for (const gtype of [
+            "Box",
+            "Point",
+            "MultiPoint",
+            "LineString",
+            "Polygon",
+            "Select",
+            "Modify",
+        ]) {
+            const dt_key = "draw_tool_" + gtype;
+            if (service_def.tools[gtype]) {
                 draw_tools.push(<DrawTool key={dt_key} geomType={gtype} />);
             }
         }
@@ -154,15 +165,21 @@ class ServiceForm extends React.Component {
         const onChange = (fieldName, value) => {
             const values = Object.assign({}, this.state.values);
             values[fieldName] = value;
-            this.setState({values});
+            this.setState({ values });
         };
 
-        const buffer_input = !show_buffer ? false : (
-            <BufferInput key='buffer-input'/>
+        const buffer_input = !show_buffer ? (
+            false
+        ) : (
+            <BufferInput key="buffer-input" />
         );
 
         const fields = this.props.serviceDef.fields.map((field) => {
-            return renderServiceField(field, this.state.values[field.name], onChange);
+            return renderServiceField(
+                field,
+                this.state.values[field.name],
+                onChange
+            );
         });
 
         let inputs = [];
@@ -173,35 +190,35 @@ class ServiceForm extends React.Component {
         }
 
         return (
-            <div className='service-form'>
+            <div className="service-form">
                 <h3>{this.props.t(service_def.title)}</h3>
-                { inputs }
-                {
-                    !this.state.validateFieldValuesResultMessage ? false : (
-                        <div className="query-error">
-                            <div className="error-header">Error</div>
-                            <div className="error-contents">
-                                { this.state.validateFieldValuesResultMessage }
-                            </div>
+                {inputs}
+                {!this.state.validateFieldValuesResultMessage ? (
+                    false
+                ) : (
+                    <div className="query-error">
+                        <div className="error-header">Error</div>
+                        <div className="error-contents">
+                            {this.state.validateFieldValuesResultMessage}
                         </div>
-                    )
-                }
-                <div className='tab-controls'>
+                    </div>
+                )}
+                <div className="tab-controls">
                     <button
-                        className='close-button'
+                        className="close-button"
                         onClick={() => {
                             this.props.onCancel();
                         }}
                     >
-                        <i className='close-icon'></i> {this.props.t('Close')}
+                        <i className="close-icon"></i> {this.props.t("Close")}
                     </button>
                     <button
-                        className='go-button'
+                        className="go-button"
                         onClick={() => {
                             this.submit();
                         }}
                     >
-                        <i className='go-icon'></i> {this.props.t('go')}
+                        <i className="go-icon"></i> {this.props.t("go")}
                     </button>
                 </div>
             </div>

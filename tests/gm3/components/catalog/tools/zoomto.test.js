@@ -22,32 +22,38 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import { screen, render, fireEvent } from '@testing-library/react';
+import React from "react";
+import { screen, render, fireEvent } from "@testing-library/react";
 
-import { ZoomToTool } from 'gm3/components/catalog/tools/zoomto';
+import { ZoomToTool } from "gm3/components/catalog/tools/zoomto";
 
-describe('Zoom-to tool test', () => {
-    it('renders a zoom to tool', () => {
+describe("Zoom-to tool test", () => {
+    it("renders a zoom to tool", () => {
         let clicked = false;
 
         const props = {
-            onZoomTo: function() {
+            onZoomTo: function () {
                 clicked = true;
             },
             layer: {
-                src: [{
-                    mapSourceName: 'test',
-                    layerName: 'test',
-                }],
+                src: [
+                    {
+                        mapSourceName: "test",
+                        layerName: "test",
+                    },
+                ],
             },
             mapSources: {
-                'test': {
+                test: {
                     features: [
                         {
                             geometry: {
-                                type: 'LineString',
-                                coordinates: [[0, 0], [1, 0], [1, 1]],
+                                type: "LineString",
+                                coordinates: [
+                                    [0, 0],
+                                    [1, 0],
+                                    [1, 1],
+                                ],
                             },
                             properties: {},
                         },
@@ -57,8 +63,7 @@ describe('Zoom-to tool test', () => {
         };
 
         render(<ZoomToTool {...props} />);
-        fireEvent.click(screen.getByRole('button'));
+        fireEvent.click(screen.getByRole("button"));
         expect(clicked).toBe(true);
     });
 });
-

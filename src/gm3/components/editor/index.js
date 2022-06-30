@@ -1,14 +1,18 @@
-import {connect} from 'react-redux';
-import {finishEditing} from '../../actions/edit';
-import {clearFeatures, saveFeature, getLayerFromPath} from '../../actions/mapSource';
-import {getMapSourceName} from '../../util';
-import {EDIT_LAYER_NAME} from '../../defaults';
-import Modal from './modal';
+import { connect } from "react-redux";
+import { finishEditing } from "../../actions/edit";
+import {
+    clearFeatures,
+    saveFeature,
+    getLayerFromPath,
+} from "../../actions/mapSource";
+import { getMapSourceName } from "../../util";
+import { EDIT_LAYER_NAME } from "../../defaults";
+import Modal from "./modal";
 
-const mapState = state => {
+const mapState = (state) => {
     let properties = [];
 
-    const open = state.editor && state.editor.modal === 'edit';
+    const open = state.editor && state.editor.modal === "edit";
 
     if (open) {
         // get the editing path.
@@ -32,7 +36,7 @@ const mapState = state => {
     }
 
     return {
-        title: 'draw-edit-tip',
+        title: "draw-edit-tip",
         open,
         path: state.map.editPath,
         properties,
@@ -41,9 +45,9 @@ const mapState = state => {
     };
 };
 
-const mapDispatch = dispatch => ({
+const mapDispatch = (dispatch) => ({
     onClose: (action, path, feature) => {
-        if (action === 'save') {
+        if (action === "save") {
             dispatch(saveFeature(path, feature));
         }
         // clear out any current features

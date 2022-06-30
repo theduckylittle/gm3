@@ -29,85 +29,86 @@
  *  of the mapbook in a nice tree format.
  */
 
-import React from 'react';
-import { connect } from 'react-redux';
-import ReactResizeDetector from 'react-resize-detector';
-import { withTranslation } from 'react-i18next';
+import React from "react";
+import { connect } from "react-redux";
+import ReactResizeDetector from "react-resize-detector";
+import { withTranslation } from "react-i18next";
 
-import uuid from 'uuid';
-import md5 from 'md5/md5';
+import uuid from "uuid";
+import md5 from "md5/md5";
 
-import * as mapSourceActions from '../../actions/mapSource';
-import * as mapActions from '../../actions/map';
-import {removeFeature, setEditFeature} from '../../actions/edit';
+import * as mapSourceActions from "../../actions/mapSource";
+import * as mapActions from "../../actions/map";
+import { removeFeature, setEditFeature } from "../../actions/edit";
 
-import * as util from '../../util';
-import * as jsts from '../../jsts';
+import * as util from "../../util";
+import * as jsts from "../../jsts";
 
-import GeoJSONFormat from 'ol/format/GeoJSON';
-import EsriJSONFormat from 'ol/format/EsriJSON';
-import GML2Format from 'ol/format/GML2';
-import WMSGetFeatureInfoFormat from 'ol/format/WMSGetFeatureInfo';
+import GeoJSONFormat from "ol/format/GeoJSON";
+import EsriJSONFormat from "ol/format/EsriJSON";
+import GML2Format from "ol/format/GML2";
+import WMSGetFeatureInfoFormat from "ol/format/WMSGetFeatureInfo";
 
-import VectorSource from 'ol/source/Vector';
-import VectorLayer from 'ol/layer/Vector';
-import * as proj from 'ol/proj';
+import VectorSource from "ol/source/Vector";
+import VectorLayer from "ol/layer/Vector";
+import * as proj from "ol/proj";
 
-import olScaleLine from 'ol/control/ScaleLine';
+import olScaleLine from "ol/control/ScaleLine";
 
-import olView from 'ol/View';
-import olMap from 'ol/Map';
-import * as olXml from 'ol/xml';
+import olView from "ol/View";
+import olMap from "ol/Map";
+import * as olXml from "ol/xml";
 
-import olCollection from 'ol/Collection';
-import olSelectInteraction from 'ol/interaction/Select';
-import olDrawInteraction, {createBox} from 'ol/interaction/Draw';
-import olModifyInteraction from 'ol/interaction/Modify';
-import * as olEventConditions from 'ol/events/condition';
+import olCollection from "ol/Collection";
+import olSelectInteraction from "ol/interaction/Select";
+import olDrawInteraction, { createBox } from "ol/interaction/Draw";
+import olModifyInteraction from "ol/interaction/Modify";
+import * as olEventConditions from "ol/events/condition";
 
-import olRotateControl from 'ol/control/Rotate';
-
+import olRotateControl from "ol/control/Rotate";
 
 /* Import the various layer types */
-import * as wmsLayer from './layers/wms';
-import * as xyzLayer from './layers/xyz';
-import * as agsLayer from './layers/ags';
-import * as vectorLayer from './layers/vector';
-import * as bingLayer from './layers/bing';
-import * as usngLayer from './layers/usng';
-import {createLayer as createBlankLayer} from './layers/blank';
+import * as wmsLayer from "./layers/wms";
+import * as xyzLayer from "./layers/xyz";
+import * as agsLayer from "./layers/ags";
+import * as vectorLayer from "./layers/vector";
+import * as bingLayer from "./layers/bing";
+import * as usngLayer from "./layers/usng";
+import { createLayer as createBlankLayer } from "./layers/blank";
 
-import { buildWfsQuery, wfsGetFeatures} from './layers/wfs';
-import {EDIT_LAYER_NAME} from '../../defaults';
+import { buildWfsQuery, wfsGetFeatures } from "./layers/wfs";
+import { EDIT_LAYER_NAME } from "../../defaults";
 
-import EditorModal from '../editor';
-import RemoveModal from '../editor/remove-modal';
-import AttributionDisplay from './attribution-display';
-import JumpToZoom from './jump-to-zoom';
+import EditorModal from "../editor";
+import RemoveModal from "../editor/remove-modal";
+import AttributionDisplay from "./attribution-display";
+import JumpToZoom from "./jump-to-zoom";
 
-import ContextControls from './context-controls';
+import ContextControls from "./context-controls";
 
 function getControls(mapConfig) {
     const controls = [];
     if (mapConfig.allowRotate !== false) {
         controls.push(new olRotateControl());
     }
-    const scaleLineConf = Object.assign({enabled: false, units: 'metric'}, mapConfig.scaleLine);
+    const scaleLineConf = Object.assign(
+        { enabled: false, units: "metric" },
+        mapConfig.scaleLine
+    );
     if (scaleLineConf.enabled !== false) {
-        controls.push(new olScaleLine({units: scaleLineConf.units}));
+        controls.push(new olScaleLine({ units: scaleLineConf.units }));
     }
     return controls;
 }
 
 const GEOJSON_FORMAT = new GeoJSONFormat();
 
-
 const getPixelTolerance = (querySource, defaultPx = 10) => {
     // the default pixel tolerance is 10 pixels.
     let pxTolerance = defaultPx;
     try {
-        if (querySource.config['pixel-tolerance']) {
-            pxTolerance = parseFloat(querySource.config['pixel-tolerance']);
+        if (querySource.config["pixel-tolerance"]) {
+            pxTolerance = parseFloat(querySource.config["pixel-tolerance"]);
         }
     } catch (err) {
         // swallow the error
@@ -115,29 +116,28 @@ const getPixelTolerance = (querySource, defaultPx = 10) => {
     return pxTolerance;
 };
 
-const applyPixelTolerance = (queryFeature, querySource, resolution, defaultPxTolerance) => {
+const applyPixelTolerance = (
+    queryFeature,
+    querySource,
+    resolution,
+    defaultPxTolerance
+) => {
     const pxTolerance = getPixelTolerance(querySource, defaultPxTolerance);
-    if (pxTolerance > 0 && queryFeature.geometry.type === 'Point') {
+    if (pxTolerance > 0 && queryFeature.geometry.type === "Point") {
         // buffer point is in pixels,
         //  this converts pixels to ground units
         const width = pxTolerance * resolution;
-        return util.getSquareBuffer(
-            queryFeature.geometry.coordinates,
-            width
-        );
+        return util.getSquareBuffer(queryFeature.geometry.coordinates, width);
     }
     return queryFeature;
 };
 
-
-
 class Map extends React.Component {
-
     constructor() {
         super();
 
         // hash of mapsources
-        this.olLayers = { };
+        this.olLayers = {};
 
         // the current 'active' interaction
         this.currentInteraction = null;
@@ -160,20 +160,20 @@ class Map extends React.Component {
     updateSource(sourceName) {
         const map_source = this.props.mapSources[sourceName];
         const ol_layer = this.olLayers[sourceName];
-        switch(map_source.type) {
-            case 'wms' :
+        switch (map_source.type) {
+            case "wms":
                 wmsLayer.updateLayer(this.map, ol_layer, map_source);
                 break;
-            case 'xyz' :
+            case "xyz":
                 xyzLayer.updateLayer(this.map, ol_layer, map_source);
                 break;
-            case 'ags' :
+            case "ags":
                 agsLayer.updateLayer(this.map, ol_layer, map_source);
                 break;
-            case 'vector' :
-            case 'wfs' :
-            case 'ags-vector':
-            case 'geojson':
+            case "vector":
+            case "wfs":
+            case "ags-vector":
+            case "geojson":
                 vectorLayer.updateLayer(
                     this.map,
                     ol_layer,
@@ -181,17 +181,17 @@ class Map extends React.Component {
                     this.props.mapView.interactionType
                 );
                 break;
-            case 'bing':
+            case "bing":
                 bingLayer.updateLayer(this.map, ol_layer, map_source);
                 break;
-            case 'usng':
+            case "usng":
                 usngLayer.updateLayer(this.map, ol_layer, map_source);
                 break;
-            case 'blank':
+            case "blank":
                 // this is a non-op, blank will be blank for all time.
                 break;
             default:
-                console.info('Unhandled map-source type: ' + map_source.type);
+                console.info("Unhandled map-source type: " + map_source.type);
         }
     }
 
@@ -202,26 +202,28 @@ class Map extends React.Component {
      *  @returns OpenLayers Layer with its source set.
      */
     createLayer(mapSource) {
-        switch(mapSource.type) {
-            case 'wms':
+        switch (mapSource.type) {
+            case "wms":
                 return wmsLayer.createLayer(mapSource);
-            case 'xyz':
+            case "xyz":
                 return xyzLayer.createLayer(mapSource);
-            case 'ags':
+            case "ags":
                 return agsLayer.createLayer(mapSource);
-            case 'vector':
-            case 'wfs':
-            case 'ags-vector':
-            case 'geojson':
+            case "vector":
+            case "wfs":
+            case "ags-vector":
+            case "geojson":
                 return vectorLayer.createLayer(mapSource);
-            case 'bing':
+            case "bing":
                 return bingLayer.createLayer(mapSource);
-            case 'usng':
+            case "usng":
                 return usngLayer.createLayer(mapSource);
-            case 'blank':
+            case "blank":
                 return createBlankLayer();
             default:
-                throw new Error('Unhandled creation of map-source type: ' + mapSource.type);
+                throw new Error(
+                    "Unhandled creation of map-source type: " + mapSource.type
+                );
         }
     }
 
@@ -244,7 +246,13 @@ class Map extends React.Component {
             // dispatch a message that the query has failed.
             this.props.store.dispatch(
                 // true for 'failed', empty array to prevent looping side-effects.
-                mapActions.resultsForQuery(queryId, queryLayer, true, [], message)
+                mapActions.resultsForQuery(
+                    queryId,
+                    queryLayer,
+                    true,
+                    [],
+                    message
+                )
             );
 
             // TODO: This delay allows the state tree to refresh before
@@ -254,13 +262,14 @@ class Map extends React.Component {
             }, 200);
         };
 
-        const selectionPoints = selection.filter(feature =>
-            feature.geometry && feature.geometry.type === 'Point');
+        const selectionPoints = selection.filter(
+            (feature) => feature.geometry && feature.geometry.type === "Point"
+        );
 
         // check that we have a geometry, if not fail.
         if (selectionPoints.length === 0) {
             // set the failure
-            fail_layer('No valid selection geometry.');
+            fail_layer("No valid selection geometry.");
             // leave the function.
             return;
         }
@@ -271,28 +280,39 @@ class Map extends React.Component {
         // TODO: Allow the configuration to specify GML vs GeoJSON,
         //       but GeoMoose needs a real feature returned.
         const params = {
-            'FEATURE_COUNT': 1000,
-            'QUERY_LAYERS': util.getLayerName(queryLayer),
-            'INFO_FORMAT': 'application/vnd.ogc.gml'
+            FEATURE_COUNT: 1000,
+            QUERY_LAYERS: util.getLayerName(queryLayer),
+            INFO_FORMAT: "application/vnd.ogc.gml",
         };
 
-        const info_url = src.getFeatureInfoUrl(coords, view.resolution, map_projection.getCode(), params);
+        const info_url = src.getFeatureInfoUrl(
+            coords,
+            view.resolution,
+            map_projection.getCode(),
+            params
+        );
         fetch(info_url, {
             headers: {
-                'Access-Control-Request-Headers': '*',
+                "Access-Control-Request-Headers": "*",
             },
         })
-            .then(r => r.text())
-            .then(responseText => {
+            .then((r) => r.text())
+            .then((responseText) => {
                 // not all WMS services play nice and will return the
                 //  error message as a 200, so this still needs checked.
-                if(responseText) {
+                if (responseText) {
                     const gml_format = new WMSGetFeatureInfoFormat();
                     const features = gml_format.readFeatures(responseText);
-                    const js_features = GEOJSON_FORMAT.writeFeaturesObject(features).features;
+                    const js_features =
+                        GEOJSON_FORMAT.writeFeaturesObject(features).features;
 
                     this.props.store.dispatch(
-                        mapActions.resultsForQuery(queryId, queryLayer, false, js_features)
+                        mapActions.resultsForQuery(
+                            queryId,
+                            queryLayer,
+                            false,
+                            js_features
+                        )
                     );
                 } else {
                     fail_layer();
@@ -321,15 +341,17 @@ class Map extends React.Component {
         let all_completed = true;
 
         // check to see if there are results for all the layers.
-        if(query && query.layers) {
-            for(const layer of query.layers) {
-                all_completed = all_completed && (query.results[layer] || (layer === completedLayer));
+        if (query && query.layers) {
+            for (const layer of query.layers) {
+                all_completed =
+                    all_completed &&
+                    (query.results[layer] || layer === completedLayer);
             }
         } else if (query && query.layers.length > 0) {
             all_completed = false;
         }
 
-        if(all_completed) {
+        if (all_completed) {
             if (query.runOptions && query.runOptions.zoomToResults) {
                 this.props.zoomToResults(query);
             }
@@ -354,96 +376,125 @@ class Map extends React.Component {
         //  returned from the query be stored in 4326 and then
         //  reprojected on render.
         let query_projection = map_projection;
-        if(map_source.wgs84Hack) {
-            query_projection = new proj.get('EPSG:4326');
+        if (map_source.wgs84Hack) {
+            query_projection = new proj.get("EPSG:4326");
         }
 
         let ol_layer = this.olLayers[ms_name];
-        if(!ol_layer) {
+        if (!ol_layer) {
             ol_layer = this.createLayer(map_source);
         }
 
         // check for the output_format based on the params
-        let output_format = 'text/xml; subtype=gml/2.1.2';
-        if(map_source.params.outputFormat) {
+        let output_format = "text/xml; subtype=gml/2.1.2";
+        if (map_source.params.outputFormat) {
             output_format = map_source.params.outputFormat;
         }
 
         if (query.selection && query.selection.length === 1) {
             query.selection[0] = applyPixelTolerance(
-                query.selection[0], map_source,
-                this.props.mapView.resolution, 10);
+                query.selection[0],
+                map_source,
+                this.props.mapView.resolution,
+                10
+            );
         }
 
-        const wfs_query_xml = buildWfsQuery(query, map_source, map_projection, output_format);
+        const wfs_query_xml = buildWfsQuery(
+            query,
+            map_source,
+            map_projection,
+            output_format
+        );
 
         // Ensure all the extra URL params are attached to the
         //  layer.
-        const wfs_url = map_source.urls[0] + '?' + util.formatUrlParameters(map_source.params);
+        const wfs_url =
+            map_source.urls[0] +
+            "?" +
+            util.formatUrlParameters(map_source.params);
 
-        const is_json_like = (output_format.toLowerCase().indexOf('json') > 0);
+        const is_json_like = output_format.toLowerCase().indexOf("json") > 0;
 
         fetch(wfs_url, {
-            method: 'POST',
+            method: "POST",
             body: wfs_query_xml,
             headers: {
-                'Access-Control-Request-Headers': '*',
+                "Access-Control-Request-Headers": "*",
             },
         })
-            .then(r => r.text())
-            .then(response => {
-                if(response) {
+            .then((r) => r.text())
+            .then((response) => {
+                if (response) {
                     // check for a WFS error message
-                    if(response.search(/(ows|wfs):exception/i) >= 0) {
+                    if (response.search(/(ows|wfs):exception/i) >= 0) {
                         // parse the document.
                         const wfs_doc = olXml.parse(response);
-                        const tags = ['ows:ExceptionText', 'wfs:ExceptionText'];
-                        let error_text = '';
-                        for(let t = 0, tt = tags.length; t < tt; t++) {
+                        const tags = ["ows:ExceptionText", "wfs:ExceptionText"];
+                        let error_text = "";
+                        for (let t = 0, tt = tags.length; t < tt; t++) {
                             const nodes = wfs_doc.getElementsByTagName(tags[t]);
-                            for(let n = 0, nn = nodes.length; n < nn; n++) {
-                                error_text += olXml.getAllTextContent(nodes[n]) + '\n';
+                            for (let n = 0, nn = nodes.length; n < nn; n++) {
+                                error_text +=
+                                    olXml.getAllTextContent(nodes[n]) + "\n";
                             }
                         }
                         // ensure that the console variable exists
-                        if(typeof console !== undefined) {
+                        if (typeof console !== undefined) {
                             console.error(error_text);
                         }
 
                         // dispatch an error status.
                         this.props.store.dispatch(
-                            mapActions.resultsForQuery(queryId, queryLayer, true, [], error_text)
+                            mapActions.resultsForQuery(
+                                queryId,
+                                queryLayer,
+                                true,
+                                [],
+                                error_text
+                            )
                         );
                     } else {
                         // place holder for features to be added.
                         let js_features = [];
-                        if(is_json_like) {
+                        if (is_json_like) {
                             js_features = JSON.parse(response).features;
                         } else {
                             const gml_format = new GML2Format();
                             const features = gml_format.readFeatures(response, {
                                 featureProjection: map_projection,
-                                dataProjection: query_projection
+                                dataProjection: query_projection,
                             });
                             // be ready with some json.
                             const json_format = new GeoJSONFormat();
 
                             // create the features array.
-                            for(const feature of features) {
+                            for (const feature of features) {
                                 // feature to JSON.
-                                const js_feature = json_format.writeFeatureObject(feature);
+                                const js_feature =
+                                    json_format.writeFeatureObject(feature);
                                 // ensure that every feature has a "boundedBy" attribute.
-                                js_feature.properties.boundedBy = feature.getGeometry().getExtent();
+                                js_feature.properties.boundedBy = feature
+                                    .getGeometry()
+                                    .getExtent();
                                 // add it to the stack.
                                 js_features.push(js_feature);
                             }
                         }
 
                         // apply the transforms
-                        js_features = util.transformFeatures(map_source.transforms, js_features);
+                        js_features = util.transformFeatures(
+                            map_source.transforms,
+                            js_features
+                        );
 
                         this.props.store.dispatch(
-                            mapActions.resultsForQuery(queryId, queryLayer, false, js_features)
+                            mapActions.resultsForQuery(
+                                queryId,
+                                queryLayer,
+                                false,
+                                js_features
+                            )
                         );
                     }
                 }
@@ -453,12 +504,17 @@ class Map extends React.Component {
                 // dispatch a message that the query has failed.
                 this.props.store.dispatch(
                     // true for 'failed', empty array to prevent looping side-effects.
-                    mapActions.resultsForQuery(queryId, queryLayer, true, [], 'Server error. Check network logs.')
+                    mapActions.resultsForQuery(
+                        queryId,
+                        queryLayer,
+                        true,
+                        [],
+                        "Server error. Check network logs."
+                    )
                 );
                 this.checkQueryForCompleteness(queryId, queryLayer);
             });
     }
-
 
     /** Create a FeatureService formatted query and send it
      *
@@ -474,18 +530,18 @@ class Map extends React.Component {
         // if the openlayers layer is not on, this fakes
         //  one for use in the query.
         let ol_layer = this.olLayers[ms_name];
-        if(!ol_layer) {
+        if (!ol_layer) {
             ol_layer = this.createLayer(map_source);
         }
 
-        const fix_like = function(value) {
-            const new_value = value.replace('*', '%');
+        const fix_like = function (value) {
+            const new_value = value.replace("*", "%");
             return new_value;
         };
 
-        const simple_op = function(op, name, value) {
-            if(typeof(value) === 'number') {
-                return name + ' ' + op + ' ' + value;
+        const simple_op = function (op, name, value) {
+            if (typeof value === "number") {
+                return name + " " + op + " " + value;
             } else {
                 return `${name} ${op} '${value}'`;
             }
@@ -494,45 +550,51 @@ class Map extends React.Component {
         // map the functions from OpenLayers to the internal
         //  types
         const filter_mapping = {
-            'like': function(name, value) {
-                return name + ' like \'' + fix_like(value) + '\'';
+            like: function (name, value) {
+                return name + " like '" + fix_like(value) + "'";
             },
-            'ilike': function(name, value) {
-                return 'upper(' + name + ') like upper(\'' + fix_like(value) + '\')';
+            ilike: function (name, value) {
+                return (
+                    "upper(" + name + ") like upper('" + fix_like(value) + "')"
+                );
             },
-            'eq': function(name, value) {
-                return simple_op('=', name, value);
+            eq: function (name, value) {
+                return simple_op("=", name, value);
             },
-            'ge': function(name, value) {
-                return simple_op('>=', name, value);
+            ge: function (name, value) {
+                return simple_op(">=", name, value);
             },
-            'gt': function(name, value) {
-                return simple_op('>', name, value);
+            gt: function (name, value) {
+                return simple_op(">", name, value);
             },
-            'le': function(name, value) {
-                return simple_op('<=', name, value);
+            le: function (name, value) {
+                return simple_op("<=", name, value);
             },
-            'lt': function(name, value) {
-                return simple_op('<', name, value);
+            lt: function (name, value) {
+                return simple_op("<", name, value);
             },
         };
 
         // setup the necessary format converters.
         const esri_format = new EsriJSONFormat();
         const query_params = {
-            f: 'json',
-            returnGeometry: 'true',
+            f: "json",
+            returnGeometry: "true",
             spatialReference: JSON.stringify({
-                wkid: 102100
+                wkid: 102100,
             }),
-            inSR: 102100, outSR: 102100,
-            outFields: '*',
+            inSR: 102100,
+            outSR: 102100,
+            outFields: "*",
         };
 
         if (query.selection && query.selection.length > 0) {
             const queryFeature = applyPixelTolerance(
-                query.selection[0], map_source,
-                this.props.mapView.resolution, 2);
+                query.selection[0],
+                map_source,
+                this.props.mapView.resolution,
+                2
+            );
             const queryGeometry = queryFeature.geometry;
 
             // make this an E**I geometry.
@@ -540,45 +602,52 @@ class Map extends React.Component {
 
             // translate the geometry to E**I-ish
             const geom_type_lookup = {
-                'Point': 'esriGeometryPoint',
-                'MultiPoint': 'esriGeometryMultipoint',
-                'LineString': 'esriGeometryPolyline',
-                'Polygon': 'esriGeometryPolygon',
+                Point: "esriGeometryPoint",
+                MultiPoint: "esriGeometryMultipoint",
+                LineString: "esriGeometryPolyline",
+                Polygon: "esriGeometryPolygon",
             };
 
             // setup the spatial filter.
             query_params.geometryType = geom_type_lookup[queryGeometry.type];
             query_params.geometry = esri_format.writeGeometry(ol_geom);
-            query_params.spatialRel = 'esriSpatialRelIntersects';
+            query_params.spatialRel = "esriSpatialRelIntersects";
             // for lines?:'esriSpatialRelEnvelopeIntersects';
         }
 
         // build the filter fields.
         const where_statements = [];
-        for(const filter of query.fields) {
-            where_statements.push(filter_mapping[filter.comparitor](filter.name, filter.value));
+        for (const filter of query.fields) {
+            where_statements.push(
+                filter_mapping[filter.comparitor](filter.name, filter.value)
+            );
         }
 
-        query_params.where = where_statements.join(' and ');
+        query_params.where = where_statements.join(" and ");
 
         const params = Object.assign({}, query_params, map_source.params);
 
         // get the query service url.
-        const query_url = map_source.urls[0] + '/query/';
+        const query_url = map_source.urls[0] + "/query/";
         util.xhr({
             url: query_url,
-            method: 'get',
-            type: 'jsonp',
+            method: "get",
+            type: "jsonp",
             data: params,
             success: (response) => {
                 // not all WMS services play nice and will return the
                 //  error message as a 200, so this still needs checked.
-                if(response) {
-                    if (response.error && response.error.code !== 200){
+                if (response) {
+                    if (response.error && response.error.code !== 200) {
                         console.error(response.error);
                         this.props.store.dispatch(
                             // true for 'failed', empty array to prevent looping side-effects.
-                            mapActions.resultsForQuery(queryId, queryLayer, true, [])
+                            mapActions.resultsForQuery(
+                                queryId,
+                                queryLayer,
+                                true,
+                                []
+                            )
                         );
                     } else {
                         // convert the esri features to OL features.
@@ -588,20 +657,31 @@ class Map extends React.Component {
 
                         // create the features array.
                         let js_features = [];
-                        for(const feature of features) {
+                        for (const feature of features) {
                             // feature to JSON.
-                            const js_feature = json_format.writeFeatureObject(feature);
+                            const js_feature =
+                                json_format.writeFeatureObject(feature);
                             // ensure that every feature has a "boundedBy" attribute.
-                            js_feature.properties.boundedBy = feature.getGeometry().getExtent();
+                            js_feature.properties.boundedBy = feature
+                                .getGeometry()
+                                .getExtent();
                             // add it to the stack.
                             js_features.push(js_feature);
                         }
 
                         // apply the transforms
-                        js_features = util.transformFeatures(map_source.transforms, js_features);
+                        js_features = util.transformFeatures(
+                            map_source.transforms,
+                            js_features
+                        );
 
                         this.props.store.dispatch(
-                            mapActions.resultsForQuery(queryId, queryLayer, false, js_features)
+                            mapActions.resultsForQuery(
+                                queryId,
+                                queryLayer,
+                                false,
+                                js_features
+                            )
                         );
                     }
                 }
@@ -615,9 +695,8 @@ class Map extends React.Component {
             },
             complete: () => {
                 this.checkQueryForCompleteness(queryId, queryLayer);
-            }
+            },
         });
-
     }
 
     /** Run a query in memory.
@@ -632,7 +711,7 @@ class Map extends React.Component {
         // if the openlayers layer is not on, this fakes
         //  one for use in the query.
         let ol_layer = this.olLayers[ms_name];
-        if(!ol_layer) {
+        if (!ol_layer) {
             ol_layer = this.createLayer(map_source);
         }
 
@@ -644,7 +723,11 @@ class Map extends React.Component {
         const result_features = [];
 
         const selection = query.selection ? query.selection[0] : null;
-        if(selection && selection.geometry && selection.geometry.type === 'Point') {
+        if (
+            selection &&
+            selection.geometry &&
+            selection.geometry.type === "Point"
+        ) {
             const coords = selection.geometry.coordinates;
             src.forEachFeatureAtCoordinateDirect(coords, (feature) => {
                 const jsonFeature = format.writeFeatureObject(feature);
@@ -656,12 +739,16 @@ class Map extends React.Component {
         }
 
         this.props.store.dispatch(
-            mapActions.resultsForQuery(queryId, queryLayer, false, result_features)
+            mapActions.resultsForQuery(
+                queryId,
+                queryLayer,
+                false,
+                result_features
+            )
         );
 
         this.checkQueryForCompleteness(queryId, queryLayer);
     }
-
 
     /** Execute a query
      *
@@ -676,29 +763,33 @@ class Map extends React.Component {
             this.props.finishQuery(queryId);
         }
 
-        for(const query_layer of query.layers) {
+        for (const query_layer of query.layers) {
             // get the map source
             const ms_name = util.getMapSourceName(query_layer);
             const map_source = this.props.mapSources[ms_name];
 
             // Run the appropriate query function
             //  based on the map-source type
-            switch(map_source.type) {
-                case 'wms':
-                    this.wmsGetFeatureInfoQuery(queryId, query.selection, query_layer);
+            switch (map_source.type) {
+                case "wms":
+                    this.wmsGetFeatureInfoQuery(
+                        queryId,
+                        query.selection,
+                        query_layer
+                    );
                     break;
-                case 'wfs':
+                case "wfs":
                     this.wfsGetFeatureQuery(queryId, query, query_layer);
                     break;
-                case 'ags-vector':
+                case "ags-vector":
                     this.agsFeatureQuery(queryId, query, query_layer);
                     break;
-                case 'geojson':
-                case 'vector':
+                case "geojson":
+                case "vector":
                     this.vectorLayerQuery(queryId, query, query_layer);
                     break;
                 default:
-                    // pass.
+                // pass.
             }
         }
     }
@@ -709,9 +800,9 @@ class Map extends React.Component {
      *  @param Queries Array of query ids.
      */
     checkQueries(queries) {
-        for(const query_id in queries) {
+        for (const query_id in queries) {
             const query = queries[query_id];
-            if(query && query.progress === 'new') {
+            if (query && query.progress === "new") {
                 // issue a 'started' modification so the query is
                 //  not run twice.
                 this.props.store.dispatch(mapActions.startQuery(query_id));
@@ -720,17 +811,18 @@ class Map extends React.Component {
             }
         }
 
-        if(queries.order.length > 0) {
+        if (queries.order.length > 0) {
             const query_id = queries.order[0];
             const query = queries[query_id];
-            if(query.progress === 'finished') {
+            if (query.progress === "finished") {
                 // check the filters
                 const filter_json = JSON.stringify(query.filter);
                 const filter_md5 = md5(filter_json);
 
-                if(this.currentQueryId !== query_id
-                   || this.currentQueryFilter !== filter_md5) {
-
+                if (
+                    this.currentQueryId !== query_id ||
+                    this.currentQueryFilter !== filter_md5
+                ) {
                     this.renderQueryLayer(query);
                     this.currentQueryId = query_id;
                     this.currentQueryFilter = filter_md5;
@@ -740,8 +832,10 @@ class Map extends React.Component {
             // once there are no more queries,
             //  clear the results from the map.
             const results = this.props.mapSources.results;
-            if(results && results.features && results.features.length > 0) {
-                this.props.store.dispatch(mapSourceActions.clearFeatures('results', 'results'));
+            if (results && results.features && results.features.length > 0) {
+                this.props.store.dispatch(
+                    mapSourceActions.clearFeatures("results", "results")
+                );
             }
         }
     }
@@ -753,7 +847,7 @@ class Map extends React.Component {
      *
      */
     removeRefreshInterval(msName) {
-        if(this.intervals[msName]) {
+        if (this.intervals[msName]) {
             clearInterval(this.intervals[msName]);
             delete this.intervals[msName];
         }
@@ -763,16 +857,16 @@ class Map extends React.Component {
      *
      */
     refreshLayer(mapSource) {
-        switch(mapSource.type) {
-            case 'wms':
+        switch (mapSource.type) {
+            case "wms":
                 const wms_src = this.olLayers[mapSource.name].getSource();
                 const params = wms_src.getParams();
                 // ".ck" = "cache killer"
-                params['.ck'] = uuid.v4();
+                params[".ck"] = uuid.v4();
                 wms_src.updateParams(params);
                 break;
             default:
-                // do nothing
+            // do nothing
         }
     }
 
@@ -781,7 +875,7 @@ class Map extends React.Component {
      */
     createRefreshInterval(mapSource) {
         // prevent the creation of a pile of intervals
-        if(!this.intervals.hasOwnProperty(mapSource.name)) {
+        if (!this.intervals.hasOwnProperty(mapSource.name)) {
             // refresh is stored in seconds, multiplying by 1000
             //  converts ito the milliseconds expected by setInterval.
             this.intervals[mapSource.name] = setInterval(() => {
@@ -794,26 +888,37 @@ class Map extends React.Component {
      *
      */
     renderQueryLayer(query) {
-        if(this.props.mapSources.results) {
+        if (this.props.mapSources.results) {
             let features = [];
             for (const layer_path in query.results) {
                 // ensure the layer_path does not have a failure.
                 if (query.results[layer_path].failed !== true) {
-                    const layer = mapSourceActions.getLayerFromPath(this.props.mapSources, layer_path);
+                    const layer = mapSourceActions.getLayerFromPath(
+                        this.props.mapSources,
+                        layer_path
+                    );
                     let highlight = true;
                     if (layer.templates[query.service]) {
-                        highlight = layer.templates[query.service].highlight !== false;
+                        highlight =
+                            layer.templates[query.service].highlight !== false;
                     }
                     if (highlight) {
                         // get the features, after applying the query filter
-                        features = features.concat(util.matchFeatures(query.results[layer_path], query.filter));
+                        features = features.concat(
+                            util.matchFeatures(
+                                query.results[layer_path],
+                                query.filter
+                            )
+                        );
                     }
                 }
             }
             // render the features from all the layers
-            this.props.setFeatures('results', features);
+            this.props.setFeatures("results", features);
         } else {
-            console.error('No "results" layer has been defined, cannot do smart query rendering.');
+            console.error(
+                'No "results" layer has been defined, cannot do smart query rendering.'
+            );
         }
     }
 
@@ -822,14 +927,17 @@ class Map extends React.Component {
      */
     refreshMapSources() {
         // get the list of current active map-sources
-        const print_only = (this.props.printOnly === true);
-        const active_map_sources = mapSourceActions.getActiveMapSources(this.props.mapSources, print_only);
+        const print_only = this.props.printOnly === true;
+        const active_map_sources = mapSourceActions.getActiveMapSources(
+            this.props.mapSources,
+            print_only
+        );
 
         // annoying O(n^2) iteration to see if the mapsource needs
         //  to be turned off.
-        for(const ms_name in this.olLayers) {
+        for (const ms_name in this.olLayers) {
             // if the ms_name is not active, turn the entire source off.
-            if(active_map_sources.indexOf(ms_name) < 0) {
+            if (active_map_sources.indexOf(ms_name) < 0) {
                 this.olLayers[ms_name].setVisible(false);
                 this.removeRefreshInterval(ms_name);
             }
@@ -838,9 +946,9 @@ class Map extends React.Component {
         // for each one of the active mapsources,
         //  determine if the olSource already exists, if not
         //   create it, if it does, turn it back on.
-        for(const ms_name of active_map_sources) {
+        for (const ms_name of active_map_sources) {
             const map_source = this.props.mapSources[ms_name];
-            if(!this.olLayers[ms_name]) {
+            if (!this.olLayers[ms_name]) {
                 // create the OL layer
                 this.olLayers[ms_name] = this.createLayer(map_source);
                 this.map.addLayer(this.olLayers[ms_name]);
@@ -854,14 +962,13 @@ class Map extends React.Component {
             // if there is a refresh interval set then
             //  create an interval which refreshes the
             //  layer.
-            if(map_source.refresh !== null) {
+            if (map_source.refresh !== null) {
                 // here's hoping this is an integer,
                 //  thanks Javascript!
                 this.createRefreshInterval(map_source);
-            } else if(map_source.refresh === null && this.intervals[ms_name]) {
+            } else if (map_source.refresh === null && this.intervals[ms_name]) {
                 this.removeRefreshInterval(ms_name);
             }
-
         }
     }
 
@@ -872,30 +979,40 @@ class Map extends React.Component {
      *
      */
     addSelectionFeatures(inFeatures, inBuffer) {
-        const features = inFeatures
-            .map(feature => GEOJSON_FORMAT.writeFeatureObject(feature));
+        const features = inFeatures.map((feature) =>
+            GEOJSON_FORMAT.writeFeatureObject(feature)
+        );
         const buffer = inBuffer !== 0 && !isNaN(inBuffer) ? inBuffer : 0;
 
         let bufferedFeature = features;
 
         if (buffer !== 0) {
             // buffer + union the features
-            const wgs84Features = util.projectFeatures(features, 'EPSG:3857', 'EPSG:4326');
+            const wgs84Features = util.projectFeatures(
+                features,
+                "EPSG:3857",
+                "EPSG:4326"
+            );
 
             // buffer those features.
-            bufferedFeature =
-                [jsts.union(util.projectFeatures(
-                    wgs84Features.map(feature => {
-                        const buffered = jsts.bufferFeature(feature, buffer);
-                        buffered.properties = {
-                            buffer: true,
-                        };
-                        return buffered;
-                    }),
-                    'EPSG:4326',
-                    'EPSG:3857'
-                )
-                ), ];
+            bufferedFeature = [
+                jsts.union(
+                    util.projectFeatures(
+                        wgs84Features.map((feature) => {
+                            const buffered = jsts.bufferFeature(
+                                feature,
+                                buffer
+                            );
+                            buffered.properties = {
+                                buffer: true,
+                            };
+                            return buffered;
+                        }),
+                        "EPSG:4326",
+                        "EPSG:3857"
+                    )
+                ),
+            ];
         }
 
         // the selection feature(s) are the original, as-drawn feature.
@@ -903,7 +1020,7 @@ class Map extends React.Component {
 
         // the feature(s) stored in the selection are what will
         //  be used for querying.
-        this.props.setFeatures('selection', bufferedFeature);
+        this.props.setFeatures("selection", bufferedFeature);
     }
 
     /** Create a selection layer for temporary selection features.
@@ -919,9 +1036,7 @@ class Map extends React.Component {
         // Fake a GeoMoose style source + layer definition
         //  to bootstrap the style
         vectorLayer.applyStyle(this.selectionLayer, {
-            layers: [
-                {on: true, style: this.props.selectionStyle},
-            ],
+            layers: [{ on: true, style: this.props.selectionStyle }],
         });
     }
 
@@ -935,18 +1050,18 @@ class Map extends React.Component {
 
         const view_params = {};
 
-        if(this.props.center) {
-            view_params.center = this.props.center
+        if (this.props.center) {
+            view_params.center = this.props.center;
 
             // check for a z-settings.
-            if(this.props.zoom) {
+            if (this.props.zoom) {
                 view_params.zoom = this.props.zoom;
-            } else if(this.props.resolution) {
+            } else if (this.props.resolution) {
                 view_params.resolution = this.props.resolution;
             }
         } else {
             view_params.center = this.props.mapView.center;
-            if(this.props.mapView.zoom) {
+            if (this.props.mapView.zoom) {
                 view_params.zoom = this.props.mapView.zoom;
             } else {
                 view_params.resolution = this.props.mapView.resolution;
@@ -954,8 +1069,14 @@ class Map extends React.Component {
         }
 
         if (this.props.config.view) {
-            const mixinKeys = ['extent', 'center', 'zoom', 'maxZoom', 'minZoom'];
-            mixinKeys.forEach(key => {
+            const mixinKeys = [
+                "extent",
+                "center",
+                "zoom",
+                "maxZoom",
+                "minZoom",
+            ];
+            mixinKeys.forEach((key) => {
                 if (this.props.config.view[key]) {
                     view_params[key] = this.props.config.view[key];
                 }
@@ -965,7 +1086,7 @@ class Map extends React.Component {
         // initialize the map.
         this.map = new olMap({
             target: this.mapDiv,
-            layers: [this.selectionLayer, ],
+            layers: [this.selectionLayer],
             logo: false,
             view: new olView(view_params),
             controls: getControls(this.props.config),
@@ -976,34 +1097,42 @@ class Map extends React.Component {
         }
 
         // when the map moves, dispatch an action
-        this.map.on('moveend', () => {
+        this.map.on("moveend", () => {
             // get the view of the map
             const view = this.map.getView();
             // create a "mapAction" and dispatch it.
-            this.props.store.dispatch(mapActions.setView({
-                center: view.getCenter(),
-                resolution: view.getResolution(),
-                zoom: view.getZoom()
-            }));
+            this.props.store.dispatch(
+                mapActions.setView({
+                    center: view.getCenter(),
+                    resolution: view.getResolution(),
+                    zoom: view.getZoom(),
+                })
+            );
         });
 
         // and when the cursor moves, dispatch an action
         //  there as well.
-        this.map.on('pointermove', (event) => {
+        this.map.on("pointermove", (event) => {
             const action = mapActions.cursor(event.coordinate);
             this.props.store.dispatch(action);
 
-            if(this.sketchFeature) {
+            if (this.sketchFeature) {
                 // convert the sketch feature's geometry to JSON and kick it out
                 // to the store.
-                const json_geom = util.geomToJson(this.sketchFeature.getGeometry());
-                this.props.store.dispatch(mapActions.updateSketchGeometry(json_geom));
+                const json_geom = util.geomToJson(
+                    this.sketchFeature.getGeometry()
+                );
+                this.props.store.dispatch(
+                    mapActions.updateSketchGeometry(json_geom)
+                );
             }
         });
 
         // call back for when the map has finished rendering.
-        if(this.props.mapRenderedCallback) {
-            this.map.on('postrender', () => this.props.mapRenderedCallback(this.map));
+        if (this.props.mapRenderedCallback) {
+            this.map.on("postrender", () =>
+                this.props.mapRenderedCallback(this.map)
+            );
         }
 
         // once the map is created, kick off the initial startup.
@@ -1025,19 +1154,19 @@ class Map extends React.Component {
      *
      */
     activateDrawTool(type, path, oneAtATime) {
-        const is_selection = (path === null);
+        const is_selection = path === null;
         const map_source_name = util.getMapSourceName(path);
         const map_source = this.props.mapSources[map_source_name];
 
         // normalize the input.
-        if(typeof(type) === 'undefined') {
+        if (typeof type === "undefined") {
             type = null;
         }
 
         // when path is null, use the selection layer,
         //  else use the specified source.
         let source = this.selectionLayer.getSource();
-        if(!is_selection) {
+        if (!is_selection) {
             source = this.olLayers[map_source_name].getSource();
         }
 
@@ -1048,53 +1177,65 @@ class Map extends React.Component {
         this.currentInteraction = type;
 
         // "null" interaction mean no more drawing.
-        if(type !== null) {
+        if (type !== null) {
             // switch to the new drawing tool.
-            if(type === 'Select') {
+            if (type === "Select") {
                 this.drawTool = new olSelectInteraction({
                     // toggleCondition: olEventConditions.never,
                     toggleCondition: olEventConditions.shiftKeyOnly,
-                    layers: [this.olLayers[map_source_name]]
+                    layers: [this.olLayers[map_source_name]],
                 });
 
-                this.drawTool.on('select', (evt) => {
+                this.drawTool.on("select", (evt) => {
                     const selectedFeatures = evt.target.getFeatures();
-                    this.addSelectionFeatures(selectedFeatures.getArray(), this.props.selectionBuffer);
+                    this.addSelectionFeatures(
+                        selectedFeatures.getArray(),
+                        this.props.selectionBuffer
+                    );
                 });
-            } else if (type === 'Modify' || type === 'Edit' || type === 'Remove') {
+            } else if (
+                type === "Modify" ||
+                type === "Edit" ||
+                type === "Remove"
+            ) {
                 let layer = null;
                 try {
-                    layer = mapSourceActions.getLayerFromPath(this.props.mapSources, path);
+                    layer = mapSourceActions.getLayerFromPath(
+                        this.props.mapSources,
+                        path
+                    );
                 } catch (err) {
                     // swallow the error if the layer can't be found.
                 }
 
-                const modifyNext = editFeatures => {
+                const modifyNext = (editFeatures) => {
                     // tell other tools where this feature originated.
                     this.props.setEditPath(path);
 
                     // set the features of the editing layer
                     //  to the selected feature.
-                    this.props.setFeatures(
-                        EDIT_LAYER_NAME,
-                        editFeatures,
-                        true
-                    );
+                    this.props.setFeatures(EDIT_LAYER_NAME, editFeatures, true);
 
                     // only show the follow up steps if a feature is selected
                     if (editFeatures && editFeatures.length > 0) {
-                        if (type === 'Remove') {
+                        if (type === "Remove") {
                             this.props.removeFeature(path, editFeatures[0]);
-                        } else if (type === 'Edit') {
+                        } else if (type === "Edit") {
                             this.props.onEditProperties(editFeatures[0]);
-                        } else if (type === 'Modify') {
+                        } else if (type === "Modify") {
                             // unset the edit-selection tool
-                            this.props.changeTool('_Modify', `${EDIT_LAYER_NAME}/${EDIT_LAYER_NAME}`)
+                            this.props.changeTool(
+                                "_Modify",
+                                `${EDIT_LAYER_NAME}/${EDIT_LAYER_NAME}`
+                            );
                         }
                     }
                 };
 
-                if (!map_source || ['wfs', 'vector', 'geojson'].indexOf(map_source.type) >= 0) {
+                if (
+                    !map_source ||
+                    ["wfs", "vector", "geojson"].indexOf(map_source.type) >= 0
+                ) {
                     const layers = !map_source
                         ? [this.selectionLayer]
                         : [this.olLayers[map_source_name]];
@@ -1104,30 +1245,36 @@ class Map extends React.Component {
                         style: null,
                     });
 
-                    this.drawTool.on('select', evt => {
-                        modifyNext(
-                            [GEOJSON_FORMAT.writeFeatureObject(evt.selected[0])]
-                        );
+                    this.drawTool.on("select", (evt) => {
+                        modifyNext([
+                            GEOJSON_FORMAT.writeFeatureObject(evt.selected[0]),
+                        ]);
                     });
                 } else if (layer && layer.queryAs.length > 0) {
                     const editSrc = this.olLayers[EDIT_LAYER_NAME].getSource();
 
                     this.drawTool = new olDrawInteraction({
-                        type: 'Point',
+                        type: "Point",
                         source: editSrc,
                     });
 
-                    this.drawTool.on('drawend', evt => {
-                        const querySourceName = util.getMapSourceName(layer.queryAs[0]);
-                        const querySource = this.props.mapSources[
-                            querySourceName
-                        ];
+                    this.drawTool.on("drawend", (evt) => {
+                        const querySourceName = util.getMapSourceName(
+                            layer.queryAs[0]
+                        );
+                        const querySource =
+                            this.props.mapSources[querySourceName];
                         let queryFeature = util.featureToJson(evt.feature);
 
-                        const mapProjection = this.map.getView().getProjection();
+                        const mapProjection = this.map
+                            .getView()
+                            .getProjection();
                         queryFeature = applyPixelTolerance(
-                            queryFeature, querySource,
-                            this.props.mapView.resolution, 10);
+                            queryFeature,
+                            querySource,
+                            this.props.mapView.resolution,
+                            10
+                        );
 
                         editSrc.clear();
 
@@ -1138,59 +1285,68 @@ class Map extends React.Component {
                             },
                             querySource,
                             mapProjection
-                        )
-                            .then(features => {
-                                modifyNext(features);
-                            });
+                        ).then((features) => {
+                            modifyNext(features);
+                        });
                     });
                 }
-            } else if(type === '_Modify') {
+            } else if (type === "_Modify") {
                 const features = source.getFeatures();
                 this.drawTool = new olModifyInteraction({
                     features: new olCollection(features),
                 });
-            } else if (type !== '') {
+            } else if (type !== "") {
                 const editSrc = this.olLayers[EDIT_LAYER_NAME].getSource();
                 const drawOptions = {
                     type,
                 };
 
                 // Draw by box requires some special settings.
-                if (type === 'Box') {
-                    drawOptions.type = 'Circle';
+                if (type === "Box") {
+                    drawOptions.type = "Circle";
                     drawOptions.geometryFunction = createBox();
                 }
                 this.drawTool = new olDrawInteraction(drawOptions);
 
-                if(oneAtATime === true && type !== 'MultiPoint') {
-                    this.drawTool.on('drawstart', (evt) => {
+                if (oneAtATime === true && type !== "MultiPoint") {
+                    this.drawTool.on("drawstart", (evt) => {
                         // clear out the other features on the source.
                         source.clear();
                         this.sketchFeature = evt.feature;
                     });
                 } else {
-                    this.drawTool.on('drawstart', (evt) => {
+                    this.drawTool.on("drawstart", (evt) => {
                         this.sketchFeature = evt.feature;
                     });
                 }
 
-                if(!is_selection) {
-                    this.drawTool.on('drawend', (evt) => {
-                        const newFeature = GEOJSON_FORMAT.writeFeatureObject(evt.feature);
+                if (!is_selection) {
+                    this.drawTool.on("drawend", (evt) => {
+                        const newFeature = GEOJSON_FORMAT.writeFeatureObject(
+                            evt.feature
+                        );
                         editSrc.clear();
 
-                        const layer = mapSourceActions.getLayerFromPath(this.props.mapSources, path);
+                        const layer = mapSourceActions.getLayerFromPath(
+                            this.props.mapSources,
+                            path
+                        );
 
                         let querySource = map_source;
                         if (layer.queryAs && layer.queryAs.length > 0) {
-                            const querySourceName = util.getMapSourceName(layer.queryAs[0]);
-                            querySource = this.props.mapSources[
-                                querySourceName
-                            ];
+                            const querySourceName = util.getMapSourceName(
+                                layer.queryAs[0]
+                            );
+                            querySource =
+                                this.props.mapSources[querySourceName];
                         }
 
-
-                        if (util.parseBoolean(querySource.config['edit-attributes-on-add'], true)) {
+                        if (
+                            util.parseBoolean(
+                                querySource.config["edit-attributes-on-add"],
+                                true
+                            )
+                        ) {
                             this.props.setEditPath(path);
                             this.props.onEditProperties(newFeature, true);
                         } else {
@@ -1199,21 +1355,30 @@ class Map extends React.Component {
 
                         // drawing is finished, no longer sketching.
                         this.sketchFeature = null;
-                        this.props.store.dispatch(mapActions.updateSketchGeometry(null));
+                        this.props.store.dispatch(
+                            mapActions.updateSketchGeometry(null)
+                        );
                     });
                 } else {
-                    this.drawTool.on('drawend', (evt) => {
+                    this.drawTool.on("drawend", (evt) => {
                         // drawing is finished, no longer sketching.
                         this.sketchFeature = null;
-                        this.props.store.dispatch(mapActions.updateSketchGeometry(null));
+                        this.props.store.dispatch(
+                            mapActions.updateSketchGeometry(null)
+                        );
 
                         let nextFeatures = [evt.feature];
-                        if (type === 'MultiPoint') {
-                            nextFeatures = this.selectionLayer.getSource().getFeatures();
+                        if (type === "MultiPoint") {
+                            nextFeatures = this.selectionLayer
+                                .getSource()
+                                .getFeatures();
                             nextFeatures.push(evt.feature);
                         }
 
-                        this.addSelectionFeatures(nextFeatures, this.props.selectionBuffer);
+                        this.addSelectionFeatures(
+                            nextFeatures,
+                            this.props.selectionBuffer
+                        );
                     });
                 }
             }
@@ -1222,7 +1387,6 @@ class Map extends React.Component {
                 this.map.addInteraction(this.drawTool);
             }
         }
-
     }
 
     /** Clear out any current draw tools.
@@ -1230,7 +1394,7 @@ class Map extends React.Component {
      */
     stopDrawing() {
         // only remove the draw tool if it exists.
-        if(this.drawTool) {
+        if (this.drawTool) {
             // off the map
             this.map.removeInteraction(this.drawTool);
             // null out for logic.
@@ -1247,15 +1411,15 @@ class Map extends React.Component {
      * @returns Boolean. True when the map sucessfully sized, false otherwise.
      */
     updateMapSize(width, height) {
-        if(this.map && this.mapDiv) {
+        if (this.map && this.mapDiv) {
             this.map.updateSize();
 
             // this is a hint for other components to calculate
             //  things based on the map size.
             // this.props.onMapResize({width, height});
 
-            const canvas = this.mapDiv.getElementsByTagName('canvas');
-            if(canvas && canvas[0] && canvas[0].style.display !== 'none') {
+            const canvas = this.mapDiv.getElementsByTagName("canvas");
+            if (canvas && canvas[0] && canvas[0].style.display !== "none") {
                 return true;
             }
         }
@@ -1265,12 +1429,12 @@ class Map extends React.Component {
     zoomToExtent(extent) {
         let bbox = extent.bbox;
         const bbox_code = extent.projection;
-        if(bbox_code) {
+        if (bbox_code) {
             const map_proj = this.map.getView().getProjection();
             bbox = proj.transformExtent(bbox, proj.get(bbox_code), map_proj);
         }
         // move the map to the new extent.
-        this.map.getView().fit(bbox, {size: this.map.getSize()});
+        this.map.getView().fit(bbox, { size: this.map.getSize() });
     }
 
     /** Intercept extent changes during a part of the render
@@ -1278,19 +1442,21 @@ class Map extends React.Component {
      */
     componentDidUpdate(prevProps) {
         // extent takes precendent over the regular map-view,
-        if(this.props.mapView.extent) {
+        if (this.props.mapView.extent) {
             this.zoomToExtent(this.props.mapView.extent);
-        // check to see if the view has been altered.
-        } else if(this.props.mapView) {
+            // check to see if the view has been altered.
+        } else if (this.props.mapView) {
             const map_view = this.map.getView();
             const view = this.props.mapView;
 
             const center = map_view.getCenter();
             const resolution = map_view.getResolution();
 
-            if(center[0] !== view.center[0] || center[1] !== view.center[1]
-                || resolution !== view.resolution) {
-
+            if (
+                center[0] !== view.center[0] ||
+                center[1] !== view.center[1] ||
+                resolution !== view.resolution
+            ) {
                 this.map.getView().setCenter(view.center);
                 this.map.getView().setResolution(view.resolution);
             }
@@ -1304,38 +1470,43 @@ class Map extends React.Component {
         // handle out of loop buffer distance changes
         if (this.selectionLayer) {
             if (this.props.selectionBuffer !== prevProps.selectionBuffer) {
-                const features = this.props.selectionFeatures
-                    .map(feature => GEOJSON_FORMAT.readFeature(feature));
+                const features = this.props.selectionFeatures.map((feature) =>
+                    GEOJSON_FORMAT.readFeature(feature)
+                );
                 if (features.length > 0) {
-                    this.addSelectionFeatures(features, this.props.selectionBuffer);
+                    this.addSelectionFeatures(
+                        features,
+                        this.props.selectionBuffer
+                    );
                 }
             }
             if (this.props.selectionFeatures !== prevProps.selectionFeatures) {
                 const src = this.selectionLayer.getSource();
                 src.clear();
-                this.props.selectionFeatures
-                    .forEach(feature => {
-                        src.addFeature(GEOJSON_FORMAT.readFeature(feature));
-                    });
+                this.props.selectionFeatures.forEach((feature) => {
+                    src.addFeature(GEOJSON_FORMAT.readFeature(feature));
+                });
             }
         }
 
         // see if any queries need their results populated.
         this.checkQueries(this.props.queries);
 
-
         // ensure the map is defined and ready.
-        if(this.map) {
+        if (this.map) {
             // refresh all the map sources, as approriate.
             this.refreshMapSources();
             const interactionType = this.props.mapView.interactionType;
 
-            if (interactionType !== prevProps.mapView.interactionType
-               || this.props.mapView.activeSource !== prevProps.mapView.activeSource
-               || interactionType !== this.currentInteraction) {
+            if (
+                interactionType !== prevProps.mapView.interactionType ||
+                this.props.mapView.activeSource !==
+                    prevProps.mapView.activeSource ||
+                interactionType !== this.currentInteraction
+            ) {
                 // "null" refers to the selection layer, "true" means only one feature
                 //   at a time.
-                const is_selection = (this.props.mapView.activeSource === null);
+                const is_selection = this.props.mapView.activeSource === null;
                 this.activateDrawTool(
                     this.props.mapView.interactionType,
                     this.props.mapView.activeSource,
@@ -1344,22 +1515,29 @@ class Map extends React.Component {
 
                 // clear out the previous features
                 //  if changing the draw tool type.
-                const drawTypes = ['Polygon', 'LineString', 'Box', 'Point', 'MultiPoint'];
-                if (drawTypes.indexOf(this.props.mapView.interactionType) >= 0) {
+                const drawTypes = [
+                    "Polygon",
+                    "LineString",
+                    "Box",
+                    "Point",
+                    "MultiPoint",
+                ];
+                if (
+                    drawTypes.indexOf(this.props.mapView.interactionType) >= 0
+                ) {
                     const typeDict = {
-                        'Box': 'Polygon',
-                        'MultiPoint': 'Point',
+                        Box: "Polygon",
+                        MultiPoint: "Point",
                     };
-                    const keepers = this.props.selectionFeatures
-                        .filter(feature => (
+                    const keepers = this.props.selectionFeatures.filter(
+                        (feature) =>
                             feature.geometry.type === interactionType ||
-                            (
-                                typeDict[interactionType] !== undefined &&
-                                feature.geometry.type === typeDict[interactionType]
-                            )
-                        ));
+                            (typeDict[interactionType] !== undefined &&
+                                feature.geometry.type ===
+                                    typeDict[interactionType])
+                    );
                     this.props.setSelectionFeatures(keepers);
-                    this.props.setFeatures('selection', keepers);
+                    this.props.setFeatures("selection", keepers);
                 }
             }
 
@@ -1373,7 +1551,7 @@ class Map extends React.Component {
 
     render() {
         // ensure the map is defined and ready.
-        if(this.map) {
+        if (this.map) {
             // update the map size when data changes
             setTimeout(this.updateMapSize, 250);
         }
@@ -1382,9 +1560,9 @@ class Map extends React.Component {
         //  when we're using react. This ensures the map is
         //  drawn correctly on startup.
         const update_map_size = this.updateMapSize;
-        if(!update_map_size()) {
-            const startup_interval = setInterval(function() {
-                if(update_map_size()) {
+        if (!update_map_size()) {
+            const startup_interval = setInterval(function () {
+                if (update_map_size()) {
                     clearInterval(startup_interval);
                 }
             }, 250);
@@ -1392,11 +1570,11 @@ class Map extends React.Component {
 
         const config = this.props.config || {};
 
-        const enableZoomJump = config.enableZoomJump === true
+        const enableZoomJump = config.enableZoomJump === true;
 
         return (
             <div
-                className='map'
+                className="map"
                 ref={(self) => {
                     this.mapDiv = self;
                 }}
@@ -1415,8 +1593,12 @@ class Map extends React.Component {
                             // this is the selection layer
                             if (path === null) {
                                 // convert the feature back to OL
-                                const olFeature = GEOJSON_FORMAT.readFeature(feature);
-                                this.addSelectionFeatures([olFeature], this.props.selectionBuffer);
+                                const olFeature =
+                                    GEOJSON_FORMAT.readFeature(feature);
+                                this.addSelectionFeatures(
+                                    [olFeature],
+                                    this.props.selectionBuffer
+                                );
                             } else {
                                 this.props.saveFeature(path, feature);
                             }
@@ -1436,7 +1618,7 @@ class Map extends React.Component {
                     />
                 </div>
             </div>
-        )
+        );
     }
 }
 
@@ -1454,9 +1636,13 @@ function mapState(state) {
         config: state.config.map || {},
         selectionStyle: state.config.selectionStyle || {},
         // resolve this to meters
-        selectionBuffer: util.convertLength(state.map.selectionBuffer, state.map.selectionBufferUnits, 'm'),
+        selectionBuffer: util.convertLength(
+            state.map.selectionBuffer,
+            state.map.selectionBufferUnits,
+            "m"
+        ),
         selectionFeatures: state.map.selectionFeatures,
-    }
+    };
 }
 
 function mapDispatch(dispatch) {
@@ -1472,13 +1658,15 @@ function mapDispatch(dispatch) {
         },
         setSelectionFeatures: (features) => {
             dispatch(mapActions.clearSelectionFeatures());
-            features.forEach(feature => {
+            features.forEach((feature) => {
                 dispatch(mapActions.addSelectionFeature(feature));
             });
         },
         setFeatures: (mapSourceName, features, copy = false) => {
             dispatch(mapSourceActions.clearFeatures(mapSourceName));
-            dispatch(mapSourceActions.addFeatures(mapSourceName, features, copy));
+            dispatch(
+                mapSourceActions.addFeatures(mapSourceName, features, copy)
+            );
         },
         zoomToResults: (query) => {
             const extent = util.getExtentForQuery(query.results);
@@ -1486,52 +1674,57 @@ function mapDispatch(dispatch) {
                 dispatch(mapActions.zoomToExtent(extent));
             }
         },
-        setEditPath: path => dispatch(mapActions.setEditPath(path)),
-        setEditTools: tools => dispatch(mapActions.setEditTools(tools)),
+        setEditPath: (path) => dispatch(mapActions.setEditPath(path)),
+        setEditTools: (tools) => dispatch(mapActions.setEditTools(tools)),
         saveFeature: (path, feature) => {
             dispatch(mapSourceActions.saveFeature(path, feature));
         },
-        setZoom: z => dispatch(mapActions.setView({zoom: z})),
+        setZoom: (z) => dispatch(mapActions.setView({ zoom: z })),
         removeFeature: (path, feature) => {
             dispatch(removeFeature(path, feature));
         },
-        onMapResize: size => dispatch(mapActions.resize(size)),
+        onMapResize: (size) => dispatch(mapActions.resize(size)),
     };
 }
 
 export default connect(mapState, mapDispatch)(withTranslation()(Map));
 
-
 export function getLegend(mapSource, mapView, layerName) {
     // see if the layer has a fixed legend.
-    for(const layer of mapSource.layers) {
-        if(layer.name === layerName && layer.legend !== undefined && layer.legend !== null) {
+    for (const layer of mapSource.layers) {
+        if (
+            layer.name === layerName &&
+            layer.legend !== undefined &&
+            layer.legend !== null
+        ) {
             // translate from the store represenation to
             // what's used to render the legend.
-            if(layer.legend.type === 'html') {
+            if (layer.legend.type === "html") {
                 return {
-                    type: 'html', html: layer.legend.contents
-                }
-            } else if(layer.legend.type === 'img') {
+                    type: "html",
+                    html: layer.legend.contents,
+                };
+            } else if (layer.legend.type === "img") {
                 return {
-                    type: 'img', images: [layer.legend.contents]
-                }
-            } else if(layer.legend.type === 'nolegend') {
+                    type: "img",
+                    images: [layer.legend.contents],
+                };
+            } else if (layer.legend.type === "nolegend") {
                 return {
-                    type: 'nolegend'
-                }
+                    type: "nolegend",
+                };
             }
         }
     }
 
     // if the mapSource type supports legends, fetch them,
     // otherwise return 'nolegend'.
-    switch(mapSource.type) {
-        case 'wms' :
+    switch (mapSource.type) {
+        case "wms":
             return wmsLayer.getLegend(mapSource, mapView, layerName);
         default:
             return {
-                type: 'nolegend'
+                type: "nolegend",
             };
     }
 }

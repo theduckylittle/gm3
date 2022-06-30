@@ -28,72 +28,81 @@ CLEAR_SELECTION_FEATURES: 'MAP_CLEAR_SELECTION_FEATURES',
 BUFFER_SELECTION_FEATURES: 'MAP_BUFFER_SELECTION_FEATURES',
 */
 
-import { applyMiddleware, createStore, combineReducers } from 'redux';
-import thunk from 'redux-thunk';
+import { applyMiddleware, createStore, combineReducers } from "redux";
+import thunk from "redux-thunk";
 
-import reducer from 'gm3/reducers/mapSource'
-import * as msActions from 'gm3/actions/mapSource'
+import reducer from "gm3/reducers/mapSource";
+import * as msActions from "gm3/actions/mapSource";
 
-import { FEATURES } from '../sample_data';
+import { FEATURES } from "../sample_data";
 
-const setupMapSource = store => {
+const setupMapSource = (store) => {
     // these are lifted directly from gm3.Application :)
-    store.dispatch(msActions.add({
-        name: 'results',
-        urls: [],
-        type: 'vector',
-        label: 'Results',
-        opacity: 1.0,
-        queryable: false,
-        refresh: null,
-        layers: [],
-        options: {
-            'always-on': true,
-        },
-        params: {},
-        // stupid high z-index to ensure results are
-        //  on top of everything else.
-        zIndex: 200001,
-    }));
-    store.dispatch(msActions.addLayer('results', {
-        name: 'results',
-        on: true,
-        label: 'Results',
-        selectable: true,
-        style: {
-            'circle-radius': 4,
-            'circle-color': '#ffff00',
-            'circle-stroke-color': '#ffff00',
-            'line-color': '#ffff00',
-            'line-width': 4,
-            'fill-color': '#ffff00',
-            'fill-opacity': 0.25,
-            'line-opacity': 0.25,
-        },
-        filter: []
-    }));
+    store.dispatch(
+        msActions.add({
+            name: "results",
+            urls: [],
+            type: "vector",
+            label: "Results",
+            opacity: 1.0,
+            queryable: false,
+            refresh: null,
+            layers: [],
+            options: {
+                "always-on": true,
+            },
+            params: {},
+            // stupid high z-index to ensure results are
+            //  on top of everything else.
+            zIndex: 200001,
+        })
+    );
+    store.dispatch(
+        msActions.addLayer("results", {
+            name: "results",
+            on: true,
+            label: "Results",
+            selectable: true,
+            style: {
+                "circle-radius": 4,
+                "circle-color": "#ffff00",
+                "circle-stroke-color": "#ffff00",
+                "line-color": "#ffff00",
+                "line-width": 4,
+                "fill-color": "#ffff00",
+                "fill-opacity": 0.25,
+                "line-opacity": 0.25,
+            },
+            filter: [],
+        })
+    );
 };
 
-const addTestFeature = store => {
-    store.dispatch(msActions.addFeatures('results', [
-        {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-                type: 'Point',
-                coordinates: [0, 0]
-            }
-        }
-    ]));
+const addTestFeature = (store) => {
+    store.dispatch(
+        msActions.addFeatures("results", [
+            {
+                type: "Feature",
+                properties: {},
+                geometry: {
+                    type: "Point",
+                    coordinates: [0, 0],
+                },
+            },
+        ])
+    );
 };
 
 const createTestStore = () => {
-    return createStore(combineReducers({
-        mapSources: reducer
-    }), applyMiddleware(thunk));
-}
+    return createStore(
+        combineReducers({
+            mapSources: reducer,
+        }),
+        applyMiddleware(thunk)
+    );
+};
 
-describe('test the `map` reducer', () => {
+describe("test the `map` reducer", () => {
     let store = null;
 
     // before each test refresh the store.
@@ -101,25 +110,25 @@ describe('test the `map` reducer', () => {
         store = createTestStore();
     });
 
-    it('adds a vector layer', () => {
+    it("adds a vector layer", () => {
         setupMapSource(store);
     });
 
-    it('adds features to the vector layer', () => {
+    it("adds features to the vector layer", () => {
         setupMapSource(store);
         addTestFeature(store);
 
         const st = store.getState();
         expect(st.mapSources.results.features.length).toBe(1);
-
     });
 
-    it('removes a feature from the vector layer (by id)', done => {
+    it("removes a feature from the vector layer (by id)", (done) => {
         setupMapSource(store);
         addTestFeature(store);
         // eslint-disable-next-line
         const fid = store.getState().mapSources.results.features[0].properties._uuid;
-        store.dispatch(msActions.removeFeature('results/results', {id: fid}))
+        store
+            .dispatch(msActions.removeFeature("results/results", { id: fid }))
             .then(() => {
                 const st = store.getState();
                 expect(st.mapSources.results.features.length).toBe(0);
@@ -127,28 +136,29 @@ describe('test the `map` reducer', () => {
             });
     });
 
-
-    describe('Tests with data', () => {
+    describe("Tests with data", () => {
         beforeEach(() => {
             store = createTestStore();
             setupMapSource(store);
 
             // add all the features from the sample data
-            store.dispatch(msActions.addFeatures('results', FEATURES));
+            store.dispatch(msActions.addFeatures("results", FEATURES));
         });
 
-        it('remove features by filter', () => {
-            store.dispatch(msActions.removeFeatures('results', [['<', 'emv_total', 300000]]));
+        it("remove features by filter", () => {
+            store.dispatch(
+                msActions.removeFeatures("results", [
+                    ["<", "emv_total", 300000],
+                ])
+            );
             const st = store.getState();
             expect(st.mapSources.results.features.length).toBe(3);
         });
 
-        it('clears all the features', () => {
-            store.dispatch(msActions.clearFeatures('results'));
+        it("clears all the features", () => {
+            store.dispatch(msActions.clearFeatures("results"));
             const st = store.getState();
             expect(st.mapSources.results.features.length).toBe(0);
         });
     });
-
-
 });

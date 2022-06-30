@@ -22,16 +22,16 @@
  * SOFTWARE.
  */
 
-import { connect } from 'react-redux';
+import { connect } from "react-redux";
 
-import CoordinateDisplay from './coordinate-display';
+import CoordinateDisplay from "./coordinate-display";
 
-const mapToProps = function(store) {
+const mapToProps = function (store) {
     return {
         coords: store.cursor.coords,
         resolution: store.map.resolution,
         zoom: store.map.zoom,
-    }
-}
+    };
+};
 
 export default connect(mapToProps)(CoordinateDisplay);

@@ -26,61 +26,63 @@
  *
  */
 
-import { TOOLBAR } from '../actionTypes';
+import { TOOLBAR } from "../actionTypes";
 
-export function addTool(root, tool, order = 'last') {
+export function addTool(root, tool, order = "last") {
     return {
         type: TOOLBAR.ADD,
         order,
         root,
-        tool
-    }
+        tool,
+    };
 }
 
-export function addDrawer(root, drawer, order = 'last') {
+export function addDrawer(root, drawer, order = "last") {
     return {
         type: TOOLBAR.ADD,
         order,
         root,
         tool: {
-            name: drawer.name, label: drawer.label,
-            actionType: 'drawer', actionDetail: '',
-        }
-    }
+            name: drawer.name,
+            label: drawer.label,
+            actionType: "drawer",
+            actionDetail: "",
+        },
+    };
 }
 
 export function remove(name) {
     return {
         type: TOOLBAR.REMOVE,
-        name
-    }
+        name,
+    };
 }
 
 function parseTool(toolXml) {
     return {
-        name: toolXml.getAttribute('name'),
-        label: toolXml.getAttribute('title'),
-        actionType: toolXml.getAttribute('type'),
-        actionDetail: toolXml.getAttribute('action'),
-        cssClass: toolXml.getAttribute('css-class'),
-    }
+        name: toolXml.getAttribute("name"),
+        label: toolXml.getAttribute("title"),
+        actionType: toolXml.getAttribute("type"),
+        actionDetail: toolXml.getAttribute("action"),
+        cssClass: toolXml.getAttribute("css-class"),
+    };
 }
 
 function parseDrawer(drawerXml) {
     return {
-        name: drawerXml.getAttribute('name'),
-        label: drawerXml.getAttribute('title'),
-    }
+        name: drawerXml.getAttribute("name"),
+        label: drawerXml.getAttribute("title"),
+    };
 }
 
 function parseChildren(rootName, node) {
     let actions = [];
-    for(const child of node.childNodes) {
-        if(child.tagName === 'drawer') {
-            const drawer = parseDrawer(child)
+    for (const child of node.childNodes) {
+        if (child.tagName === "drawer") {
+            const drawer = parseDrawer(child);
             actions.push(addDrawer(rootName, drawer));
             actions = actions.concat(parseChildren(drawer.name, child));
-        } else if(child.tagName === 'tool') {
+        } else if (child.tagName === "tool") {
             actions.push(addTool(rootName, parseTool(child)));
         }
     }
@@ -88,6 +90,8 @@ function parseChildren(rootName, node) {
 }
 
 export function parseToolbar(toolbarXml) {
-    if(!toolbarXml) { return []; }
-    return parseChildren('root', toolbarXml);
+    if (!toolbarXml) {
+        return [];
+    }
+    return parseChildren("root", toolbarXml);
 }

@@ -22,31 +22,29 @@
  * SOFTWARE.
  */
 
-
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React from "react";
+import { useTranslation } from "react-i18next";
 
 /** Generic class for basic "click this, do this" tools.
  */
-export const Tool = ({tip, iconClass, onClick, children, active}) => {
-    const {t} = useTranslation();
+export const Tool = ({ tip, iconClass, onClick, children, active }) => {
+    const { t } = useTranslation();
     return (
         <React.Fragment>
             <i
-                role='button'
-                className={(active ? 'active icon ' : 'icon ') + iconClass}
+                role="button"
+                className={(active ? "active icon " : "icon ") + iconClass}
                 onClick={onClick}
-                title={t(tip)}>
-            </i>
-            { children }
+                title={t(tip)}
+            ></i>
+            {children}
         </React.Fragment>
     );
-}
+};
 
 Tool.defaultProps = {
-    onClick: () => {
-    },
-    iconClass: '',
-    tip: '',
+    onClick: () => {},
+    iconClass: "",
+    tip: "",
     active: false,
-}
+};

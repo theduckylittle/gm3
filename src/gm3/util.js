@@ -22,13 +22,13 @@
  * SOFTWARE.
  */
 
-import { parse as urlParse } from 'url';
+import { parse as urlParse } from "url";
 
-import Request from 'reqwest';
+import Request from "reqwest";
 
-import GeoJSONFormat from 'ol/format/GeoJSON';
+import GeoJSONFormat from "ol/format/GeoJSON";
 
-import {featureFilter as createFilter} from '@mapbox/mapbox-gl-style-spec';
+import { featureFilter as createFilter } from "@mapbox/mapbox-gl-style-spec";
 
 /** Collection of handy functions
  */
@@ -37,7 +37,7 @@ export function parseHash() {
     // The "substring(1)" removes the "#" from the leading edge,
     //  replacing it with the '?' then cuases the hash to be parsed like
     //  a normal query string.
-    return urlParse('?' + window.location.hash.substring(1), true);
+    return urlParse("?" + window.location.hash.substring(1), true);
 }
 
 export function parseQuery() {
@@ -45,14 +45,19 @@ export function parseQuery() {
 }
 
 export function parseBoolean(bool, def = false) {
-    if(typeof(bool) == 'undefined' || bool === null) { return def; }
-    const boolString = '' + bool;
-    if(boolString.match(/true/i)) { return true; }
-    else if(boolString === '1') { return true; }
-    else if(boolString.match(/on/i)) { return true; }
+    if (typeof bool == "undefined" || bool === null) {
+        return def;
+    }
+    const boolString = "" + bool;
+    if (boolString.match(/true/i)) {
+        return true;
+    } else if (boolString === "1") {
+        return true;
+    } else if (boolString.match(/on/i)) {
+        return true;
+    }
     return false;
 }
-
 
 /** Take in an XML node and return all the text
  *  contained within that node.
@@ -62,17 +67,16 @@ export function parseBoolean(bool, def = false) {
  *  @returns Text in the node.
  */
 export function getXmlTextContents(node) {
-    if(node.firstChild) {
+    if (node.firstChild) {
         return node.firstChild.nodeValue;
-    } else if(node.text) {
+    } else if (node.text) {
         return node.text;
-    } else if(node.textContent) {
+    } else if (node.textContent) {
         return node.textContent;
     }
 
-    return '';
+    return "";
 }
-
 
 /** Parse a node from XML and return the text value.
  *
@@ -93,11 +97,11 @@ export function getTagContents(xml, tagName, multiple) {
     const contents = [];
 
     const tags = xml.getElementsByTagName(tagName);
-    for(let i = 0, ii = tags.length; i < ii; i++) {
+    for (let i = 0, ii = tags.length; i < ii; i++) {
         const tag = tags[i];
         const node_value = getXmlTextContents(tag);
         // when multiple is not true, return the first value.
-        if(multiple === true) {
+        if (multiple === true) {
             contents.push(node_value);
         } else {
             return node_value;
@@ -116,31 +120,35 @@ export function getTagContents(xml, tagName, multiple) {
  *  @returns boolean, true if they differ, false if they are the same.
  */
 export function objectsDiffer(objA, objB, deep) {
-    const a_keys = Object.keys(objA), b_keys = Object.keys(objB);
+    const a_keys = Object.keys(objA),
+        b_keys = Object.keys(objB);
 
-    for(const key of a_keys) {
-        const b_type = typeof(objB[key]);
-        switch(b_type) {
+    for (const key of a_keys) {
+        const b_type = typeof objB[key];
+        switch (b_type) {
             // if the key from a does not exist in b, then they differ.
-            case 'undefined':
+            case "undefined":
                 return true;
             // standard comparisons
-            case 'string':
-            case 'number':
-                if(objA[key] !== objB[key]) {
+            case "string":
+            case "number":
+                if (objA[key] !== objB[key]) {
                     return true;
                 }
                 break;
             // GO DEEP!
-            case 'object':
+            case "object":
                 // typeof(null) == 'object', this
                 //  prevents trying to recurse on null
-                if(objB[key] == null) {
-                    if(objA[key] != null) {
+                if (objB[key] == null) {
+                    if (objA[key] != null) {
                         return true;
                     }
                 }
-                if(deep === true && objectsDiffer(objA[key], objB[key], true)) {
+                if (
+                    deep === true &&
+                    objectsDiffer(objA[key], objB[key], true)
+                ) {
                     return true;
                 }
                 break;
@@ -154,15 +162,14 @@ export function objectsDiffer(objA, objB, deep) {
     // The above loop ensures that all the keys
     //  in "A" match a key in "B", if "B" has any
     //  extra keys then the objects differ.
-    for(const key of b_keys) {
-        if(a_keys.indexOf(key) < 0) {
+    for (const key of b_keys) {
+        if (a_keys.indexOf(key) < 0) {
             return true;
         }
     }
 
     return false;
 }
-
 
 /** Get the map-sources name.  Paths are "/" split
  *  and so the first component should be the map-source name.
@@ -172,8 +179,10 @@ export function objectsDiffer(objA, objB, deep) {
  *  @returns a string with the map-source's name.
  */
 export function getMapSourceName(path) {
-    if(path === null) { return ''; }
-    return path.split('/')[0];
+    if (path === null) {
+        return "";
+    }
+    return path.split("/")[0];
 }
 
 /** Get the later name, path's last "/" should be the layer name.
@@ -183,12 +192,14 @@ export function getMapSourceName(path) {
  * @returns a layer name
  */
 export function getLayerName(path) {
-    if(path === null) { return ''; }
-    const c = path.split('/');
+    if (path === null) {
+        return "";
+    }
+    const c = path.split("/");
     c.shift();
     // layers can have "/" in the name, so they need
     //  rejoined after removing the map-source name.
-    return c.join('/');
+    return c.join("/");
 }
 
 /** Properly escape and join parameters for a URL
@@ -200,16 +211,15 @@ export function getLayerName(path) {
  */
 export function formatUrlParameters(params, stripParams = []) {
     const formatted_params = [];
-    for(const key in params) {
+    for (const key in params) {
         // ignore any params in stripParams
         if (stripParams.indexOf(key) <= 0) {
             const formatted_value = encodeURIComponent(params[key]);
-            formatted_params.push(key + '=' + formatted_value);
+            formatted_params.push(key + "=" + formatted_value);
         }
     }
-    return formatted_params.join('&');
+    return formatted_params.join("&");
 }
-
 
 /** Formatting options for markup-js
  *
@@ -219,13 +229,12 @@ export function formatUrlParameters(params, stripParams = []) {
  */
 export const FORMAT_OPTIONS = {
     pipes: {
-        localize: function(n) {
+        localize: function (n) {
             return n.toLocaleString();
         },
-        json: obj => JSON.stringify(obj),
-    }
-}
-
+        json: (obj) => JSON.stringify(obj),
+    },
+};
 
 /* Check to see if a value is in a list.
  *
@@ -235,7 +244,7 @@ export const FORMAT_OPTIONS = {
  * @return Boolean.
  */
 function inList(value, list) {
-    return (list.indexOf(value) >= 0);
+    return list.indexOf(value) >= 0;
 }
 
 /* Check to see if a value is in a range from min to max.
@@ -247,14 +256,14 @@ function inList(value, list) {
  * @return Boolean.
  */
 function inRange(value, min = null, max = null) {
-    if(min !== null && max !== null) {
-        return (min < value && value < max);
+    if (min !== null && max !== null) {
+        return min < value && value < max;
     }
-    if(min === null) {
-        return (value < max);
+    if (min === null) {
+        return value < max;
     }
-    if(max === null) {
-        return (min < value);
+    if (max === null) {
+        return min < value;
     }
 
     // if everything is null, then the value is
@@ -270,46 +279,50 @@ function inRange(value, min = null, max = null) {
  *  @returns {Boolean} whether the feature matches.
  */
 export function featureMatch(feature, filter) {
-    const match_all = (filter.match === 'any') ? false : true;
-    for(const filter_key in filter) {
+    const match_all = filter.match === "any" ? false : true;
+    for (const filter_key in filter) {
         const filter_def = filter[filter_key];
         const prop_val = feature.properties[filter_key];
         let v = false;
-        switch(filter_def.type) {
+        switch (filter_def.type) {
             // range filters can have a min, max, or both.
-            case 'range':
+            case "range":
                 v = inRange(prop_val, filter_def.min, filter_def.max);
                 break;
-            case 'list':
+            case "list":
                 v = inList(prop_val, filter_def.value);
                 break;
             // simple equals match
-            case 'equals':
-                v = (filter_def.value === prop_val);
+            case "equals":
+                v = filter_def.value === prop_val;
                 break;
             // no ".type" was set, assume the filter
             // is defined as an "equals" match, e.g. {'PIN' : '123456'}
             default:
                 // if filter_def is an array, or specified
                 //  as a "list type" then do the list match.
-                if(Array.isArray(filter_def)) {
+                if (Array.isArray(filter_def)) {
                     v = inList(prop_val, filter_def);
                 } else {
                     // check to see if the values match
-                    v = (filter_def === prop_val);
+                    v = filter_def === prop_val;
                 }
         }
         // if they match, and this is an 'any' search then short-circuit
         //  and return true;
-        if(v && !match_all) { return true; }
+        if (v && !match_all) {
+            return true;
+        }
         // if this value doesn't match, and require matching all
         //  then this can short-circuit and return false;
-        if(!v && match_all) { return false; }
+        if (!v && match_all) {
+            return false;
+        }
     }
 
     // no false values could have been set
     //  and reach this point with match_all
-    if(match_all) {
+    if (match_all) {
         return true;
     }
 
@@ -333,16 +346,18 @@ export function filterFeatures(features, filter, inverse = true) {
 
     // the createFilter function is from mapbox!
     // uses the mapbox gl style filters.
-    let filter_function = function() { return true; };
+    let filter_function = function () {
+        return true;
+    };
 
-    if (filter !== undefined && filter !== null ) {
-        filter_function = createFilter(['all'].concat(filter)).filter;
+    if (filter !== undefined && filter !== null) {
+        filter_function = createFilter(["all"].concat(filter)).filter;
     }
 
     if (features) {
         for (let x = 0, xx = features.length; x < xx; x++) {
             const feature = features[x];
-            if(inverse !== filter_function({zoom: 15}, feature)) {
+            if (inverse !== filter_function({ zoom: 15 }, feature)) {
                 new_features.push(feature);
             }
         }
@@ -363,7 +378,7 @@ export function filterFeatures(features, filter, inverse = true) {
  */
 export function matchFeatures(features, filter) {
     // when no filter is applied, just return the features.
-    if(filter === undefined || filter === null || filter === false) {
+    if (filter === undefined || filter === null || filter === false) {
         return features;
     }
 
@@ -382,13 +397,17 @@ export function matchFeatures(features, filter) {
 export function changeFeatures(features, filter, properties, geometry) {
     const new_features = [];
 
-    for(const feature of features) {
-        if(featureMatch(feature, filter)) {
+    for (const feature of features) {
+        if (featureMatch(feature, filter)) {
             const new_feature = Object.assign({}, feature);
-            if(properties) {
-                new_feature.properties = Object.assign({}, feature.properties, properties);
+            if (properties) {
+                new_feature.properties = Object.assign(
+                    {},
+                    feature.properties,
+                    properties
+                );
             }
-            if(geometry) {
+            if (geometry) {
                 new_feature.geometry = Object.assign({}, geometry);
             }
             new_features.push(new_feature);
@@ -420,35 +439,42 @@ export function getVersion() {
 export function getFeaturesExtent(mapSource) {
     const bounds = [null, null, null, null];
 
-    const min = function(x, y) {
-        if(x === null || y < x) { return y; }
+    const min = function (x, y) {
+        if (x === null || y < x) {
+            return y;
+        }
         return x;
     };
 
-    const max = function(x, y) {
-        if(x === null || y > x) { return y; }
+    const max = function (x, y) {
+        if (x === null || y > x) {
+            return y;
+        }
         return x;
     };
 
-    const update_bounds = function(x, y) {
+    const update_bounds = function (x, y) {
         bounds[0] = min(bounds[0], x);
         bounds[1] = min(bounds[1], y);
         bounds[2] = max(bounds[2], x);
         bounds[3] = max(bounds[3], y);
     };
 
-    if(mapSource.features) {
-        for(const feature of mapSource.features) {
+    if (mapSource.features) {
+        for (const feature of mapSource.features) {
             const geom = feature.geometry;
-            if(geom.type === 'Point') {
+            if (geom.type === "Point") {
                 update_bounds(geom.coordinates[0], geom.coordinates[1]);
-            } else if(geom.type === 'LineString') {
-                for(const pt of geom.coordinates) {
+            } else if (geom.type === "LineString") {
+                for (const pt of geom.coordinates) {
                     update_bounds(pt[0], pt[1]);
                 }
-            } else if(geom.type === 'Polygon' || geom.type === 'MultiLineString') {
-                for(const ring of geom.coordinates) {
-                    for(const pt of ring) {
+            } else if (
+                geom.type === "Polygon" ||
+                geom.type === "MultiLineString"
+            ) {
+                for (const ring of geom.coordinates) {
+                    for (const pt of ring) {
                         update_bounds(pt[0], pt[1]);
                     }
                 }
@@ -471,15 +497,21 @@ export function configureProjections(p4) {
     // var utm_zone = GeoMOOSE.getUtmZone(bounds.left);
     // var north = bounds.top > 0 ? 'north' : 'south';
 
-    for(let utm_zone = 1; utm_zone <= 60; utm_zone++) {
-        for(const north of ['north', 'south']) {
+    for (let utm_zone = 1; utm_zone <= 60; utm_zone++) {
+        for (const north of ["north", "south"]) {
             // southern utm zones are 327XX, northern 326XX
-            const epsg_code = 32600 + utm_zone + (north === 'north' ? 0 : 100);
+            const epsg_code = 32600 + utm_zone + (north === "north" ? 0 : 100);
 
-            const proj_id = 'EPSG:' + epsg_code;
-            const proj_alias = 'UTM' + utm_zone + (north === 'north' ? 'N' : 'S');
+            const proj_id = "EPSG:" + epsg_code;
+            const proj_alias =
+                "UTM" + utm_zone + (north === "north" ? "N" : "S");
             // it's nice to have a formulary.
-            const proj_string = '+proj=utm +zone=' + utm_zone + ' +' + north + '+datum=WGS84 +units=m +no_defs';
+            const proj_string =
+                "+proj=utm +zone=" +
+                utm_zone +
+                " +" +
+                north +
+                "+datum=WGS84 +units=m +no_defs";
 
             // set up the standard way of calling the projection
             //  (using the EPSG Code)
@@ -488,7 +520,6 @@ export function configureProjections(p4) {
             p4.defs(proj_alias, p4.defs(proj_id));
         }
     }
-
 }
 
 /**
@@ -513,13 +544,13 @@ export function getUtmZone(pt) {
     // No citation provideded for this calculation,
     // it was working in the GM2.X series without a lot
     // of complaints.
-    const zone = Math.floor((pt[0] / 6.0) + 30) + 1;
+    const zone = Math.floor(pt[0] / 6.0 + 30) + 1;
 
     // north zones are north of 0.
-    const north = (pt[1] > 0) ? 'N' : 'S';
+    const north = pt[1] > 0 ? "N" : "S";
 
     // boom, string ot the user.
-    return 'UTM' + zone + north;
+    return "UTM" + zone + north;
 }
 
 const GEOJSON_FORMAT = new GeoJSONFormat();
@@ -541,15 +572,15 @@ export function jsonToFeature(feature, options = {}) {
 }
 
 const EQUIVALENT_METERS = {
-    'ft': 0.3048,
-    'yd': 0.9144,
-    'mi': 1609.347,
-    'in': 0.0254,
-    'm': 1,
-    'km': 1000,
-    'ch': 20.11684,
-    'a': 63.63,
-    'h': 100
+    ft: 0.3048,
+    yd: 0.9144,
+    mi: 1609.347,
+    in: 0.0254,
+    m: 1,
+    km: 1000,
+    ch: 20.11684,
+    a: 63.63,
+    h: 100,
 };
 
 /** Converts numeric lengths between given units
@@ -561,7 +592,9 @@ const EQUIVALENT_METERS = {
  */
 export function convertLength(length, srcUnits, destUnits) {
     // US survey feet, miles
-    return length * EQUIVALENT_METERS[srcUnits] / EQUIVALENT_METERS[destUnits];
+    return (
+        (length * EQUIVALENT_METERS[srcUnits]) / EQUIVALENT_METERS[destUnits]
+    );
 }
 
 /** Converts numeric areas between given units
@@ -573,21 +606,24 @@ export function convertLength(length, srcUnits, destUnits) {
  */
 export function convertArea(area, srcUnits, destUnits) {
     // US survey feet, miles
-    return area * Math.pow(EQUIVALENT_METERS[srcUnits], 2) / Math.pow(EQUIVALENT_METERS[destUnits], 2);
+    return (
+        (area * Math.pow(EQUIVALENT_METERS[srcUnits], 2)) /
+        Math.pow(EQUIVALENT_METERS[destUnits], 2)
+    );
 }
 
 /* Convert  Meters to a given units.
  *
  */
 export function metersLengthToUnits(meters, units) {
-    return convertLength(meters, 'm', units);
+    return convertLength(meters, "m", units);
 }
 
 /* Convert Square Meters to a given units.
  *
  */
 export function metersAreaToUnits(meters, units) {
-    return convertArea(meters, 'm', units);
+    return convertArea(meters, "m", units);
 }
 
 /* Check to see if a layer should be checked or not.
@@ -599,21 +635,23 @@ export function metersAreaToUnits(meters, units) {
 export function isLayerOn(mapSources, layer) {
     // during "bootstrap" mapSources can be undefined,
     //  this catches that scenario.
-    if(!mapSources) { return false };
+    if (!mapSources) {
+        return false;
+    }
 
     // assume the layer is on
     let is_on = true;
     // iterate through each src,
     //  if any are off, mark the checkbox as "off".
-    for(let s = 0, ss = layer.src.length; s < ss; s++) {
+    for (let s = 0, ss = layer.src.length; s < ss; s++) {
         const src = layer.src[s];
 
-        if(mapSources[src.mapSourceName]) {
+        if (mapSources[src.mapSourceName]) {
             const map_source = mapSources[src.mapSourceName];
-            for(let l = 0, ll = map_source.layers.length; l < ll; l++) {
+            for (let l = 0, ll = map_source.layers.length; l < ll; l++) {
                 const layer = map_source.layers[l];
-                if(layer.name === src.layerName) {
-                    is_on = (is_on && layer.on);
+                if (layer.name === src.layerName) {
+                    is_on = is_on && layer.on;
                 }
             }
         } else {
@@ -648,22 +686,22 @@ export function getZValue(mapSources, layer) {
  */
 export function getLayersByZOrder(catalog, mapSources) {
     const layers = [];
-    for(const key of Object.keys(catalog)) {
+    for (const key of Object.keys(catalog)) {
         const node = catalog[key];
         // no children, should be a layer
-        if(node && typeof(node.children) === 'undefined') {
-            if(isLayerOn(mapSources, node)) {
+        if (node && typeof node.children === "undefined") {
+            if (isLayerOn(mapSources, node)) {
                 layers.push({
                     zIndex: getZValue(mapSources, node),
-                    layer: node
+                    layer: node,
                 });
             }
         }
     }
 
     // sort the catalog layers by zIndex
-    layers.sort(function(a, b) {
-        return (a.zIndex > b.zIndex) ? -1 : 1;
+    layers.sort(function (a, b) {
+        return a.zIndex > b.zIndex ? -1 : 1;
     });
 
     return layers;
@@ -681,21 +719,20 @@ export function xhr(opts) {
     return Request(opts);
 }
 
-
 export function transformProperties(transforms, properties) {
     const new_properties = Object.assign({}, properties);
 
-    for(const prop in transforms) {
+    for (const prop in transforms) {
         let value = properties[prop];
-        switch(transforms[prop]) {
-            case 'string':
-                value = '' + value;
-                break
-            case 'number':
+        switch (transforms[prop]) {
+            case "string":
+                value = "" + value;
+                break;
+            case "number":
                 value = parseFloat(value);
                 break;
             default:
-                // do nothing on default.
+            // do nothing on default.
         }
         new_properties[prop] = value;
     }
@@ -711,12 +748,15 @@ export function transformProperties(transforms, properties) {
  * @return The array of GeoJSON features.
  */
 export function transformFeatures(transforms, features) {
-    if(typeof(transforms) !== 'object') {
+    if (typeof transforms !== "object") {
         return features;
     }
 
-    for(const feature of features) {
-        feature.properties = transformProperties(transforms, feature.properties);
+    for (const feature of features) {
+        feature.properties = transformProperties(
+            transforms,
+            feature.properties
+        );
     }
 
     return features;
@@ -742,17 +782,20 @@ export function requEstimator(data) {
  */
 export function projectFeatures(features, srcProj, destProj) {
     // fake the array of features as a feature collection.
-    const new_features = GEOJSON_FORMAT.readFeatures({
-        type: 'FeatureCollection',
-        features: features
-    }, {
-        dataProjection: srcProj,
-        featureProjection: destProj
-    });
+    const new_features = GEOJSON_FORMAT.readFeatures(
+        {
+            type: "FeatureCollection",
+            features: features,
+        },
+        {
+            dataProjection: srcProj,
+            featureProjection: destProj,
+        }
+    );
 
     // the output will be a feature collection,
     //  the ".features" ensures an array is returned.
-    return (GEOJSON_FORMAT.writeFeaturesObject(new_features)).features;
+    return GEOJSON_FORMAT.writeFeaturesObject(new_features).features;
 }
 
 /**
@@ -767,20 +810,19 @@ export function jsonEquals(a, b) {
     return JSON.stringify(a) === JSON.stringify(b);
 }
 
-
 /** Get the extent of a query's results.
  *  All features must have a boundedBy property.
  */
 export function getExtentForQuery(results, minSize = 150) {
     let extent = null;
 
-    for(const path in results) {
+    for (const path in results) {
         const features = results[path];
-        if(features.length > 0) {
-            if(extent === null) {
+        if (features.length > 0) {
+            if (extent === null) {
                 extent = features[0].properties.boundedBy.slice();
             }
-            for(let i = 1, ii = features.length; i < ii; i++) {
+            for (let i = 1, ii = features.length; i < ii; i++) {
                 const e = features[i].properties.boundedBy;
                 extent[0] = Math.min(extent[0], e[0]);
                 extent[1] = Math.min(extent[1], e[1]);
@@ -832,8 +874,8 @@ export function getScale(resolution, projection) {
  */
 export function joinUrl(url, params) {
     let r = url;
-    if (url.substring(url.length - 1) !== '?') {
-        r += '?';
+    if (url.substring(url.length - 1) !== "?") {
+        r += "?";
     }
     return r + formatUrlParameters(params);
 }
@@ -847,16 +889,18 @@ export function joinUrl(url, params) {
  *
  */
 export const getSquareBuffer = (point, buffer) => ({
-    type: 'Feature',
+    type: "Feature",
     properties: {},
     geometry: {
-        type: 'Polygon',
-        coordinates: [[
-            [point[0] - buffer, point[1] - buffer],
-            [point[0] - buffer, point[1] + buffer],
-            [point[0] + buffer, point[1] + buffer],
-            [point[0] + buffer, point[1] - buffer],
-            [point[0] - buffer, point[1] - buffer],
-        ]],
+        type: "Polygon",
+        coordinates: [
+            [
+                [point[0] - buffer, point[1] - buffer],
+                [point[0] - buffer, point[1] + buffer],
+                [point[0] + buffer, point[1] + buffer],
+                [point[0] + buffer, point[1] - buffer],
+                [point[0] - buffer, point[1] - buffer],
+            ],
+        ],
     },
 });

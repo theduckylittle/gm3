@@ -30,10 +30,10 @@
  *
  */
 
-import { BufferOp, GeoJSONReader, GeoJSONWriter } from 'turf-jsts';
-import turf_union from '@turf/union';
-import * as proj from 'ol/proj';
-import { jsonToGeom, geomToJson, getUtmZone } from './util';
+import { BufferOp, GeoJSONReader, GeoJSONWriter } from "turf-jsts";
+import turf_union from "@turf/union";
+import * as proj from "ol/proj";
+import { jsonToGeom, geomToJson, getUtmZone } from "./util";
 
 export function buffer(feature, meters) {
     return bufferFeature(feature, meters).geometry;
@@ -42,13 +42,13 @@ export function buffer(feature, meters) {
 function getAnchorPoint(feature, empty = null) {
     let anchorPoint = empty;
     const gtype = feature.geometry.type;
-    if (gtype === 'Point') {
+    if (gtype === "Point") {
         anchorPoint = feature.geometry.coordinates;
-    } else if(gtype === 'MultiPoint' || gtype === 'LineString') {
+    } else if (gtype === "MultiPoint" || gtype === "LineString") {
         anchorPoint = feature.geometry.coordinates[0];
-    } else if(gtype === 'MultiLineString' || gtype === 'Polygon') {
+    } else if (gtype === "MultiLineString" || gtype === "Polygon") {
         anchorPoint = feature.geometry.coordinates[0][0];
-    } else if(gtype === 'MuliPolygon') {
+    } else if (gtype === "MuliPolygon") {
         anchorPoint = feature.geometry.cooredinates[0][0][0];
     }
     return anchorPoint;
@@ -65,7 +65,7 @@ export function bufferFeature(feature, meters) {
     let geom = jsonToGeom(feature.geometry);
 
     // project it to UTM
-    geom = geom.transform('EPSG:4326', utmZone);
+    geom = geom.transform("EPSG:4326", utmZone);
 
     // back again to JSON after reprojection
     let meters_geojson = geomToJson(geom);
@@ -80,16 +80,18 @@ export function bufferFeature(feature, meters) {
     meters_geojson = writer.write(buffered);
 
     // back to 4326
-    const final_geom = jsonToGeom(meters_geojson).transform(utmZone, 'EPSG:4326');
+    const final_geom = jsonToGeom(meters_geojson).transform(
+        utmZone,
+        "EPSG:4326"
+    );
 
     // return the geometry wrapped in a feature.
     return {
-        type: 'Feature',
+        type: "Feature",
         properties: {},
         geometry: geomToJson(final_geom),
     };
 }
-
 
 /** Takes in an array of GeoJSON features, buffers them
  *  and returns a GeoJSON feature.
@@ -102,14 +104,14 @@ export function bufferFeature(feature, meters) {
 export function bufferAndUnion(features, meters) {
     let geometry = null;
 
-    for(let i = 0, ii = features.length; i < ii; i++) {
+    for (let i = 0, ii = features.length; i < ii; i++) {
         // buffer the geometry.
         const g = bufferFeature(features[i], meters);
         // if the output geometry is still null, then set the
         //  first member to the new geometry
-        if(geometry === null) {
+        if (geometry === null) {
             geometry = g;
-        // otherwise buffer it.
+            // otherwise buffer it.
         } else {
             geometry = turf_union(geometry, g);
         }
@@ -119,7 +121,7 @@ export function bufferAndUnion(features, meters) {
 }
 
 export function union(features) {
-    const distance = pt => Math.sqrt(pt[0] * pt[0] + pt[1] * pt[1]);
+    const distance = (pt) => Math.sqrt(pt[0] * pt[0] + pt[1] * pt[1]);
     // sort the features by their bounding boxes.
     const sortedFeatures = features.sort((a, b) => {
         const ptA = getAnchorPoint(a);
@@ -131,7 +133,7 @@ export function union(features) {
         }
         return distance(ptA) < distance(ptB) ? -1 : 1;
     });
-    let unionFeature = {...sortedFeatures[0]};
+    let unionFeature = { ...sortedFeatures[0] };
     for (let i = 1, ii = sortedFeatures.length; i < ii; i++) {
         unionFeature = turf_union(unionFeature, sortedFeatures[i]);
     }

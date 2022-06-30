@@ -22,89 +22,110 @@
  * SOFTWARE.
  */
 
-import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import React from "react";
+import { render, fireEvent } from "@testing-library/react";
 
-import { createStore, combineReducers } from 'redux';
-import { Provider } from 'react-redux';
+import { createStore, combineReducers } from "redux";
+import { Provider } from "react-redux";
 
-import SmartToolbar, { Toolbar } from 'gm3/components/toolbar';
-import SmartToolbarButton, { ToolbarButton } from 'gm3/components/toolbar/button';
-import ToolbarDrawer from 'gm3/components/toolbar/drawer';
+import SmartToolbar, { Toolbar } from "gm3/components/toolbar";
+import SmartToolbarButton, {
+    ToolbarButton,
+} from "gm3/components/toolbar/button";
+import ToolbarDrawer from "gm3/components/toolbar/drawer";
 
-import toolbarReducer from 'gm3/reducers/toolbar';
-import queryReducer from 'gm3/reducers/query';
-import mapReducer from 'gm3/reducers/map';
-import uiReducer from 'gm3/reducers/ui';
+import toolbarReducer from "gm3/reducers/toolbar";
+import queryReducer from "gm3/reducers/query";
+import mapReducer from "gm3/reducers/map";
+import uiReducer from "gm3/reducers/ui";
 
-import * as actions from 'gm3/actions/toolbar';
+import * as actions from "gm3/actions/toolbar";
 
-
-describe('Toolbar component tests', () => {
+describe("Toolbar component tests", () => {
     let store = null;
 
     beforeEach(() => {
-        store = createStore(combineReducers({
-            toolbar: toolbarReducer,
-            map: mapReducer,
-            query: queryReducer,
-            ui: uiReducer,
-        }));
+        store = createStore(
+            combineReducers({
+                toolbar: toolbarReducer,
+                map: mapReducer,
+                query: queryReducer,
+                ui: uiReducer,
+            })
+        );
     });
 
-    it('renders a toolbar button', () => {
+    it("renders a toolbar button", () => {
         const tool = {
-            name: 'sample0',
-            label: 'Sample Zero',
-            actionType: 'service', actionDetail: 'sample'
+            name: "sample0",
+            label: "Sample Zero",
+            actionType: "service",
+            actionDetail: "sample",
         };
 
         render(<ToolbarButton tool={tool} />);
     });
 
-    it('renders a drawer', () => {
+    it("renders a drawer", () => {
         const tool = {
-            name: 'sample0',
-            label: 'Sample Zero',
-            actionType: 'service', actionDetail: 'sample'
+            name: "sample0",
+            label: "Sample Zero",
+            actionType: "service",
+            actionDetail: "sample",
         };
 
-        render(<Provider store={store}><ToolbarDrawer label='Drawer Zero' tools={[tool]} services={{}} /></Provider>);
+        render(
+            <Provider store={store}>
+                <ToolbarDrawer
+                    label="Drawer Zero"
+                    tools={[tool]}
+                    services={{}}
+                />
+            </Provider>
+        );
     });
 
-    it('renders a toolbar', () => {
+    it("renders a toolbar", () => {
         const tool = {
-            name: 'sample0',
-            label: 'Sample Zero',
-            actionType: 'service', actionDetail: 'sample'
+            name: "sample0",
+            label: "Sample Zero",
+            actionType: "service",
+            actionDetail: "sample",
         };
 
         const drawer = {
-            name: 'drawer0',
-            label: 'Drawer Zero',
+            name: "drawer0",
+            label: "Drawer Zero",
         };
 
         const toolbar = {
             root: [drawer],
-            drawer0: [tool]
-        }
+            drawer0: [tool],
+        };
 
         render(<Toolbar store={store} toolbar={toolbar} services={{}} />);
     });
 
-    it('renders a toolbar from the store', function() {
-        store.dispatch(actions.addDrawer('root', {
-            name: 'drawer0', label: 'Drawer 0',
-        }));
-        store.dispatch(actions.addTool('drawer0', {
-            name: 'sample1', label: 'Sample 1',
-            actionType: 'service', actionDetail: 'sample2'
-        }));
+    it("renders a toolbar from the store", function () {
+        store.dispatch(
+            actions.addDrawer("root", {
+                name: "drawer0",
+                label: "Drawer 0",
+            })
+        );
+        store.dispatch(
+            actions.addTool("drawer0", {
+                name: "sample1",
+                label: "Sample 1",
+                actionType: "service",
+                actionDetail: "sample2",
+            })
+        );
 
         render(<SmartToolbar store={store} services={{}} />);
     });
 
-    it('renders a toolbar from a mapbook fragment', function() {
+    it("renders a toolbar from a mapbook fragment", function () {
         const toolbarXml = `
             <toolbar>
                 <tool name="findme" title="Find Me" type="action"/>
@@ -116,40 +137,48 @@ describe('Toolbar component tests', () => {
             </toolbar>`;
 
         const parser = new DOMParser();
-        const xml = parser.parseFromString(toolbarXml, 'text/xml');
-        const results = actions.parseToolbar(xml.getElementsByTagName('toolbar')[0]);
+        const xml = parser.parseFromString(toolbarXml, "text/xml");
+        const results = actions.parseToolbar(
+            xml.getElementsByTagName("toolbar")[0]
+        );
 
-        results.forEach(action => {
+        results.forEach((action) => {
             store.dispatch(action);
         });
 
-        render(<SmartToolbar store={store} services={{}}/>);
+        render(<SmartToolbar store={store} services={{}} />);
     });
 
-    it('changes the active service when clicked.', function() {
+    it("changes the active service when clicked.", function () {
         const tool = {
-            name: 'sample0',
-            label: 'Sample Zero',
-            actionType: 'service'
+            name: "sample0",
+            label: "Sample Zero",
+            actionType: "service",
         };
 
-        const {container} = render(<Provider store={store}><SmartToolbarButton tool={tool} /></Provider>);
-        fireEvent.click(container.getElementsByClassName('tool')[0]);
+        const { container } = render(
+            <Provider store={store}>
+                <SmartToolbarButton tool={tool} />
+            </Provider>
+        );
+        fireEvent.click(container.getElementsByClassName("tool")[0]);
 
         const state = store.getState();
-        expect(state.query.service).toBe('sample0');
+        expect(state.query.service).toBe("sample0");
     });
 
-    it('triggers an action when clicked.', function() {
+    it("triggers an action when clicked.", function () {
         const tool = {
-            name: 'sample0',
-            label: 'Sample Zero',
-            actionType: 'action'
+            name: "sample0",
+            label: "Sample Zero",
+            actionType: "action",
         };
 
-        const {container} = render(<SmartToolbarButton tool={tool} store={store} />);
-        fireEvent.click(container.getElementsByClassName('tool')[0]);
+        const { container } = render(
+            <SmartToolbarButton tool={tool} store={store} />
+        );
+        fireEvent.click(container.getElementsByClassName("tool")[0]);
 
-        expect(store.getState().ui.action).toBe('sample0');
+        expect(store.getState().ui.action).toBe("sample0");
     });
 });

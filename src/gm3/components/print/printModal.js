@@ -30,45 +30,43 @@
  * and hopefully the user does not hit "print" until
  * that image is ready.
  */
-import React from 'react';
-import {connect} from 'react-redux';
-import {Translation} from 'react-i18next';
+import React from "react";
+import { connect } from "react-redux";
+import { Translation } from "react-i18next";
 
-import View from 'ol/View';
+import View from "ol/View";
 
-import jsPDF from 'jspdf';
-import Mark from 'markup-js';
+import jsPDF from "jspdf";
+import Mark from "markup-js";
 
-import Modal from '../modal';
-import PrintImage from './printImage';
-import PrintPreviewImage from './printPreviewImage';
-import LinearProgress from '../linearProgress';
+import Modal from "../modal";
+import PrintImage from "./printImage";
+import PrintPreviewImage from "./printPreviewImage";
+import LinearProgress from "../linearProgress";
 
-import { getActiveMapSources } from '../../actions/mapSource';
-import { printed } from '../../actions/print';
-import { hideModal } from '../../actions/ui';
+import { getActiveMapSources } from "../../actions/mapSource";
+import { printed } from "../../actions/print";
+import { hideModal } from "../../actions/ui";
 
-import { getLegend } from '../map';
+import { getLegend } from "../map";
 
-import DefaultLayouts from './printLayouts';
+import DefaultLayouts from "./printLayouts";
 
-import GeoPdfPlugin from './geopdf';
-import { getScalelineInfo } from '../scaleline';
+import GeoPdfPlugin from "./geopdf";
+import { getScalelineInfo } from "../scaleline";
 
 function loadFonts(fontsUrl) {
     if (fontsUrl) {
         // use fetch
         fetch(fontsUrl, {
-            crossOrigin: 'anonymous',
-        })
-            .then(r => r.json())
+            crossOrigin: "anonymous",
+        }).then((r) => r.json());
     } else {
         // use the dynamic imports to load the default
         //  fonts.
-        return import(/* webpackChunkName: "print-fonts" */ './fonts');
+        return import(/* webpackChunkName: "print-fonts" */ "./fonts");
     }
 }
-
 
 function buildLegendsOnMap(catalog) {
     const legendMap = {};
@@ -82,7 +80,8 @@ function buildLegendsOnMap(catalog) {
                 }
 
                 legendMap[src.mapSourceName][src.layerName] =
-                    !!legendMap[src.mapSourceName][src.layerName] || catalog[key].legend;
+                    !!legendMap[src.mapSourceName][src.layerName] ||
+                    catalog[key].legend;
             }
         }
     }
@@ -90,16 +89,15 @@ function buildLegendsOnMap(catalog) {
 }
 
 export class PrintModal extends Modal {
-
     constructor(props) {
         super(props);
         this.BodyProps = {
             style: {
-                maxHeight: '500px',
+                maxHeight: "500px",
             },
         };
         this.state = {
-            mapTitle: '',
+            mapTitle: "",
             layout: 0,
             resolution: 1,
             layouts: props.layouts ? props.layouts : DefaultLayouts,
@@ -109,7 +107,7 @@ export class PrintModal extends Modal {
     /* Print the PDF! Or, ya know, close the dialog.
      */
     close(status) {
-        if(status === 'print') {
+        if (status === "print") {
             const layout = parseInt(this.state.layout, 10);
             this.makePDF(this.state.layouts[layout]);
             // tell the store that the print is done,
@@ -123,9 +121,8 @@ export class PrintModal extends Modal {
 
     /* Return the title for the dialog. */
     getTitle() {
-        return 'Print';
+        return "Print";
     }
-
 
     addText(doc, def, options = {}) {
         // these are the subsitution strings for the map text elements
@@ -134,15 +131,15 @@ export class PrintModal extends Modal {
             title: this.state.mapTitle,
             year: date.getFullYear(),
             month: date.getMonth() + 1,
-            day: date.getDate()
+            day: date.getDate(),
         };
 
         // def needs to define: x, y, text
         const defaults = {
             size: 13,
             color: [0, 0, 0],
-            font: 'NotoSans',
-            fontStyle: 'regular'
+            font: "NotoSans",
+            fontStyle: "regular",
         };
 
         // create a new font definition object based on
@@ -153,23 +150,31 @@ export class PrintModal extends Modal {
         // set the size
         doc.setFontSize(full_def.size);
         // the color
-        doc.setTextColor(full_def.color[0], full_def.color[1], full_def.color[2]);
+        doc.setTextColor(
+            full_def.color[0],
+            full_def.color[1],
+            full_def.color[2]
+        );
         // and the font face.
         doc.setFont(full_def.font, full_def.fontStyle);
         // then mark the face.
-        doc.text(full_def.x, full_def.y, Mark.up(full_def.text, subst_dict), options);
+        doc.text(
+            full_def.x,
+            full_def.y,
+            Mark.up(full_def.text, subst_dict),
+            options
+        );
     }
 
     /* Embed an image in the PDF
      */
     addImage(doc, def) {
         // optionally scale the image to fit the space.
-        if(def.width && def.height) {
+        if (def.width && def.height) {
             doc.addImage(def.image_data, def.x, def.y, def.width, def.height);
         } else {
             doc.addImage(def.image_data, def.x, def.y);
         }
-
     }
 
     /* Embed legends in the PDF
@@ -178,31 +183,43 @@ export class PrintModal extends Modal {
         const legendsOnMap = buildLegendsOnMap(this.props.catalog);
         const mapResolution = this.props.mapView.resolution;
 
-        const checkResolution = ms => {
+        const checkResolution = (ms) => {
             let on = true;
-            if (ms.minresolution !== undefined && mapResolution < ms.minresolution) {
+            if (
+                ms.minresolution !== undefined &&
+                mapResolution < ms.minresolution
+            ) {
                 on = false;
             }
-            if (ms.maxresolution !== undefined && mapResolution > ms.maxresolution) {
+            if (
+                ms.maxresolution !== undefined &&
+                mapResolution > ms.maxresolution
+            ) {
                 on = false;
             }
             return on;
-        }
+        };
 
         let legends = [];
         for (const mapSourceName in this.props.mapSources) {
-            const mapSource = this.props.mapSources[mapSourceName]
+            const mapSource = this.props.mapSources[mapSourceName];
             if (checkResolution(mapSource)) {
                 const srcLegends = mapSource.layers
                     // only render legends for layers that are on
-                    .filter(layer => layer.on)
+                    .filter((layer) => layer.on)
                     // Is the legend on
-                    .filter(layer => !!legendsOnMap[mapSourceName] && !!legendsOnMap[mapSourceName][layer.name])
+                    .filter(
+                        (layer) =>
+                            !!legendsOnMap[mapSourceName] &&
+                            !!legendsOnMap[mapSourceName][layer.name]
+                    )
                     // convert the layer to a legend def
-                    .map(layer => getLegend(mapSource, this.props.mapView, layer.name))
+                    .map((layer) =>
+                        getLegend(mapSource, this.props.mapView, layer.name)
+                    )
                     // only image layers are supported.
-                    .filter(legend => legend.type === 'img')
-                    .map(legend => legend.images);
+                    .filter((legend) => legend.type === "img")
+                    .map((legend) => legend.images);
 
                 for (let i = 0, ii = srcLegends.length; i < ii; i++) {
                     legends = legends.concat(srcLegends[i]);
@@ -211,7 +228,7 @@ export class PrintModal extends Modal {
         }
 
         const promises = [];
-        legends.forEach(legendSrc => {
+        legends.forEach((legendSrc) => {
             const promise = new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = () => {
@@ -221,22 +238,21 @@ export class PrintModal extends Modal {
                     reject();
                 };
                 img.src = legendSrc;
-
             });
             promises.push(promise);
         });
 
-        return Promise.all(promises)
-            .then(images => {
-                let offsetY = 0;
-                images.forEach(img => {
-                    this.addImage(doc, {
-                        x: def.x, y: def.y + offsetY,
-                        image_data: img,
-                    });
-                    offsetY += (img.height + 5) / 72;
+        return Promise.all(promises).then((images) => {
+            let offsetY = 0;
+            images.forEach((img) => {
+                this.addImage(doc, {
+                    x: def.x,
+                    y: def.y + offsetY,
+                    image_data: img,
                 });
-            })
+                offsetY += (img.height + 5) / 72;
+            });
+        });
     }
 
     /* Wraps addImage specifically for the map.
@@ -246,12 +262,15 @@ export class PrintModal extends Modal {
 
         // this is not a smart component and it doesn't need to be,
         //  so sniffing the state for the current image is just fine.
-        this.addImage(doc, Object.assign({}, def, {image_data: state.print.printData}));
+        this.addImage(
+            doc,
+            Object.assign({}, def, { image_data: state.print.printData })
+        );
 
         // construct the extents from the map
         const map_view = state.map;
         // TODO: get this from state
-        const map_proj = 'EPSG:3857';
+        const map_proj = "EPSG:3857";
 
         const view = new View({
             center: map_view.center,
@@ -266,20 +285,27 @@ export class PrintModal extends Modal {
             this.toPoints(def.height, u) * resolution,
         ]);
 
-        const pdf_extents = [def.x, def.y, def.x + def.width, def.y + def.height];
-        for(let i = 0; i < pdf_extents.length; i++) {
+        const pdf_extents = [
+            def.x,
+            def.y,
+            def.x + def.width,
+            def.y + def.height,
+        ];
+        for (let i = 0; i < pdf_extents.length; i++) {
             pdf_extents[i] = this.toPoints(pdf_extents[i], u);
         }
 
         // add a scale line
         const scaleLine = state.config.map.scaleLine;
         if (scaleLine && scaleLine.enabled) {
-            const scaleInfo = getScalelineInfo(view, scaleLine.units || 'us', {multiplier: resolution});
+            const scaleInfo = getScalelineInfo(view, scaleLine.units || "us", {
+                multiplier: resolution,
+            });
             const ptToLayout = 1 / this.toPoints(1, layout.units);
             const margin = 12 * ptToLayout;
             const height = 12 * ptToLayout;
             this.addDrawing(doc, {
-                type: 'rect',
+                type: "rect",
                 filled: true,
                 // place this in the lower left corner of the map
                 x: def.x + margin,
@@ -292,15 +318,19 @@ export class PrintModal extends Modal {
                 fill: [178, 196, 219],
             });
 
-            this.addText(doc, {
-                x: def.x + margin + 2 * ptToLayout,
-                y: def.y + def.height - margin - height / 2,
-                text: scaleInfo.label,
-                size: 12,
-                color: [238, 238, 238],
-            }, {
-                baseline: 'middle',
-            });
+            this.addText(
+                doc,
+                {
+                    x: def.x + margin + 2 * ptToLayout,
+                    y: def.y + def.height - margin - height / 2,
+                    text: scaleInfo.label,
+                    size: 12,
+                    color: [238, 238, 238],
+                },
+                {
+                    baseline: "middle",
+                }
+            );
         }
 
         doc.setGeoArea(pdf_extents, map_extents);
@@ -312,28 +342,31 @@ export class PrintModal extends Modal {
      */
     addDrawing(doc, def) {
         // determine the style string
-        let style = 'S';
-        if(def.filled) {
-            style = 'DF';
+        let style = "S";
+        if (def.filled) {
+            style = "DF";
             const fill = def.fill ? def.fill : [255, 255, 255];
             doc.setFillColor(fill[0], fill[1], fill[2]);
         }
 
         // set the stroke width
-        const stroke_width = def.strokeWidth !== undefined ? def.strokeWidth : this.toPoints(1, 'px');
+        const stroke_width =
+            def.strokeWidth !== undefined
+                ? def.strokeWidth
+                : this.toPoints(1, "px");
         if (stroke_width > 0) {
             const stroke = def.stroke ? def.stroke : [0, 0, 0];
             doc.setLineWidth(stroke_width);
             doc.setDrawColor(stroke[0], stroke[1], stroke[2]);
         } else {
-            style = 'F';
+            style = "F";
             doc.setLineWidth(0);
         }
 
         // draw the shape.
-        if(def.type === 'rect') {
+        if (def.type === "rect") {
             doc.rect(def.x, def.y, def.width, def.height, style);
-        } else if(def.type === 'ellipse') {
+        } else if (def.type === "ellipse") {
             doc.ellipse(def.x, def.y, def.rx, def.ry, style);
         }
     }
@@ -349,32 +382,32 @@ export class PrintModal extends Modal {
         //  as it does not expose a public API
         //  for converting units to points.
         switch (unit) {
-            case 'pt':
+            case "pt":
                 k = 1;
                 break;
-            case 'mm':
+            case "mm":
                 k = 72 / 25.4;
                 break;
-            case 'cm':
+            case "cm":
                 k = 72 / 2.54;
                 break;
-            case 'in':
+            case "in":
                 k = 72;
                 break;
-            case 'px':
+            case "px":
                 k = 96 / 72;
                 break;
-            case 'pc':
+            case "pc":
                 k = 12;
                 break;
-            case 'em':
+            case "em":
                 k = 12;
                 break;
-            case 'ex':
+            case "ex":
                 k = 6;
                 break;
             default:
-                throw new Error('Invalid unit: ' + unit);
+                throw new Error("Invalid unit: " + unit);
         }
 
         return n * k;
@@ -382,23 +415,22 @@ export class PrintModal extends Modal {
 
     makePDF(layout) {
         // check for and install the geopdf plugin
-        if(!jsPDF.API.setGeoArea) {
+        if (!jsPDF.API.setGeoArea) {
             GeoPdfPlugin(jsPDF.API);
         }
         // new PDF document
         const doc = new jsPDF(layout.orientation, layout.units, layout.page);
-        loadFonts(this.props.fontIndexUrl)
-            .then(fontIndex => {
-                for (const fontName in fontIndex.FONTS) {
-                    // add the file to the VFS
-                    doc.addFileToVFS(fontName, fontIndex.FONTS[fontName]);
-                    // add the font.
-                    const parts = fontName.replace('.ttf', '').split('-');
-                    doc.addFont(fontName, parts[0], parts[1].toLowerCase());
-                }
+        loadFonts(this.props.fontIndexUrl).then((fontIndex) => {
+            for (const fontName in fontIndex.FONTS) {
+                // add the file to the VFS
+                doc.addFileToVFS(fontName, fontIndex.FONTS[fontName]);
+                // add the font.
+                const parts = fontName.replace(".ttf", "").split("-");
+                doc.addFont(fontName, parts[0], parts[1].toLowerCase());
+            }
 
-                this.paintPDF(doc, layout);
-            });
+            this.paintPDF(doc, layout);
+        });
     }
 
     paintPDF(doc, layout) {
@@ -406,47 +438,42 @@ export class PrintModal extends Modal {
 
         // iterate through the elements of the layout
         //  and place them in the document.
-        for(const element of layout.elements) {
-            switch(element.type) {
-                case 'text':
+        for (const element of layout.elements) {
+            switch (element.type) {
+                case "text":
                     this.addText(doc, element);
                     break;
-                case 'map':
+                case "map":
                     this.addMapImage(doc, element, layout);
                     break;
-                case 'image':
+                case "image":
                     this.addImage(doc, element);
                     break;
-                case 'rect':
-                case 'ellipse':
+                case "rect":
+                case "ellipse":
                     this.addDrawing(doc, element);
                     break;
-                case 'legend':
+                case "legend":
                     promises = promises.concat(this.addLegends(doc, element));
                     break;
                 default:
-                    // pass, do nothing.
+                // pass, do nothing.
             }
         }
 
-        Promise.all(promises)
-            .then(() => {
-                // kick it back out to the user.
-                doc.save('print_' + ((new Date()).getTime()) + '.pdf');
-            });
+        Promise.all(promises).then(() => {
+            // kick it back out to the user.
+            doc.save("print_" + new Date().getTime() + ".pdf");
+        });
     }
 
     renderFooter() {
         const buttons = [
-            this.renderOption({value: 'dismiss', label: 'Cancel'}),
-            this.renderOption({value: 'print', label: 'Print'})
+            this.renderOption({ value: "dismiss", label: "Cancel" }),
+            this.renderOption({ value: "print", label: "Print" }),
         ];
 
-        return (
-            <div className={ this.getFooterClass(2) }>
-                { buttons }
-            </div>
-        );
+        return <div className={this.getFooterClass(2)}>{buttons}</div>;
     }
 
     /* The Map Image size changes based on the layout used
@@ -460,8 +487,8 @@ export class PrintModal extends Modal {
         // iterate through the layout elements looking
         //  for the map.
         let map_element = null;
-        for(const element of layout.elements) {
-            if(element.type === 'map') {
+        for (const element of layout.elements) {
+            if (element.type === "map") {
                 map_element = element;
                 break;
             }
@@ -470,7 +497,8 @@ export class PrintModal extends Modal {
         // caculate the width and height and kick it back.
         return {
             width: this.toPoints(map_element.width, layout.units) * resolution,
-            height: this.toPoints(map_element.height, layout.units) * resolution
+            height:
+                this.toPoints(map_element.height, layout.units) * resolution,
         };
     }
 
@@ -479,16 +507,16 @@ export class PrintModal extends Modal {
     renderLayoutSelect(t) {
         return (
             <select
-                onChange={evt => {
-                    this.setState({layout: evt.target.value});
+                onChange={(evt) => {
+                    this.setState({ layout: evt.target.value });
                 }}
                 value={this.state.layout}
             >
-                {
-                    this.state.layouts.map((layout, idx) => (
-                        <option key={layout.label} value={idx}>{t(`page-${layout.label}`)}</option>
-                    ))
-                }
+                {this.state.layouts.map((layout, idx) => (
+                    <option key={layout.label} value={idx}>
+                        {t(`page-${layout.label}`)}
+                    </option>
+                ))}
             </select>
         );
     }
@@ -499,16 +527,16 @@ export class PrintModal extends Modal {
     renderResolutionSelect(t) {
         return (
             <select
-                onChange={evt => {
+                onChange={(evt) => {
                     this.setState({
                         resolution: evt.target.value,
                     });
                 }}
                 value={this.state.resolution}
             >
-                <option value='1'>{t('resolution-normal')}</option>
-                <option value='1.5'>{t('resolution-higher')}</option>
-                <option value='2'>{t('resolution-highest')}</option>
+                <option value="1">{t("resolution-normal")}</option>
+                <option value="1.5">{t("resolution-higher")}</option>
+                <option value="2">{t("resolution-highest")}</option>
             </select>
         );
     }
@@ -517,10 +545,11 @@ export class PrintModal extends Modal {
         // small set of CSS hacks to keep the print map
         //  invisible but drawn.
         const map_style_hack = {
-            visibility: 'hidden',
+            visibility: "hidden",
             zIndex: -1,
-            position: 'absolute',
-            top: 0, left: 0
+            position: "absolute",
+            top: 0,
+            left: 0,
         };
 
         // get the number of all map-sources.
@@ -532,12 +561,12 @@ export class PrintModal extends Modal {
         //  are active map-sources then inform the user they will lose some
         //  layers in the print.
         let print_warning = false;
-        if(printable_ms < all_ms) {
+        if (printable_ms < all_ms) {
             print_warning = (
-                <div className='info-box'>
-                Some of the map layers cannot be printed. The map image
-                in the resulting PDF may differ from what is seen in the
-                map viewer.
+                <div className="info-box">
+                    Some of the map layers cannot be printed. The map image in
+                    the resulting PDF may differ from what is seen in the map
+                    viewer.
                 </div>
             );
         }
@@ -548,25 +577,27 @@ export class PrintModal extends Modal {
                 {print_warning}
 
                 <Translation>
-                    {t => (
+                    {(t) => (
                         <div>
                             <p>
-                                <label>{`${t('map-title')}:`}</label>
+                                <label>{`${t("map-title")}:`}</label>
                                 <input
-                                    placeholder={t('map-title')}
-                                    value={ this.state.mapTitle }
-                                    onChange={evt => {
-                                        this.setState({mapTitle: evt.target.value});
+                                    placeholder={t("map-title")}
+                                    value={this.state.mapTitle}
+                                    onChange={(evt) => {
+                                        this.setState({
+                                            mapTitle: evt.target.value,
+                                        });
                                     }}
                                 />
                             </p>
                             <p>
-                                <label>{`${t('page-layout')}:`}</label>
-                                { this.renderLayoutSelect(t) }
+                                <label>{`${t("page-layout")}:`}</label>
+                                {this.renderLayoutSelect(t)}
                             </p>
                             <p>
-                                <label>{`${t('resolution')}:`}</label>
-                                { this.renderResolutionSelect(t) }
+                                <label>{`${t("resolution")}:`}</label>
+                                {this.renderResolutionSelect(t)}
                             </p>
                         </div>
                     )}
@@ -575,21 +606,24 @@ export class PrintModal extends Modal {
                 {!this.props.printData && <LinearProgress />}
 
                 <div>
-                    <PrintPreviewImage printData={this.props.printData}/>
+                    <PrintPreviewImage printData={this.props.printData} />
                 </div>
 
-                <div style={ map_style_hack }>
-                    <PrintImage width={mapSize.width} height={mapSize.height} store={this.props.store}/>
+                <div style={map_style_hack}>
+                    <PrintImage
+                        width={mapSize.width}
+                        height={mapSize.height}
+                        store={this.props.store}
+                    />
                 </div>
             </div>
         );
-
     }
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
     mapSources: state.mapSources,
-    open: state.ui.modal === 'print',
+    open: state.ui.modal === "print",
     mapView: state.map,
     printData: state.print.printData,
     catalog: state.catalog,

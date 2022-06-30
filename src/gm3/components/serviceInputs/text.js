@@ -22,19 +22,22 @@
  * SOFTWARE.
  */
 
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
-import uuid from 'uuid';
+import uuid from "uuid";
 
-export const getId = () => (uuid.v4());
+export const getId = () => uuid.v4();
 
 export default class TextInput extends Component {
-
     constructor(props) {
         super(props);
 
         this.state = {
-            value: props.value ? props.value : props.field.default ? props.field.default : ''
+            value: props.value
+                ? props.value
+                : props.field.default
+                ? props.field.default
+                : "",
         };
 
         this.onChange = this.onChange.bind(this);
@@ -54,7 +57,7 @@ export default class TextInput extends Component {
 
     onChange(evt) {
         const v = evt.target.value;
-        this.setState({value: v});
+        this.setState({ value: v });
 
         this.setValue(this.getName(), v);
     }
@@ -64,23 +67,24 @@ export default class TextInput extends Component {
         this.props.setValue(name, value);
     }
 
-
     render() {
         const id = this.getId();
 
         return (
-            <div className='service-input'>
-                <label htmlFor={ 'input-' + id }>{ this.props.field.label }</label>
+            <div className="service-input">
+                <label htmlFor={"input-" + id}>{this.props.field.label}</label>
                 <input
                     onChange={this.onChange}
                     value={this.state.value}
                     type="text"
-                    id={ 'input-' + id}
-                    placeholder={ this.props.field.placeHolder }
-                    className={this.props.field.helpText ? 'has-help-text' : ''}
+                    id={"input-" + id}
+                    placeholder={this.props.field.placeHolder}
+                    className={this.props.field.helpText ? "has-help-text" : ""}
                 />
                 {this.props.field.helpText && (
-                    <div className="helper-text" htmlFor={ 'input-' + id }>{ this.props.field.helpText }</div>
+                    <div className="helper-text" htmlFor={"input-" + id}>
+                        {this.props.field.helpText}
+                    </div>
                 )}
             </div>
         );

@@ -21,17 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import React from 'react';
-import { connect } from 'react-redux';
+import React from "react";
+import { connect } from "react-redux";
 
-import { setOpacity } from '../../../actions/mapSource';
+import { setOpacity } from "../../../actions/mapSource";
 
-import { Tool } from '../tools';
-
+import { Tool } from "../tools";
 
 /** Tool to "fade" a layer. Aka, take away opacity.
  */
-export const FadeTool = ({tip, iconClass, layer, mapSources, direction, onFade}) => {
+export const FadeTool = ({
+    tip,
+    iconClass,
+    layer,
+    mapSources,
+    direction,
+    onFade,
+}) => {
     return (
         <Tool
             tip={tip}
@@ -39,18 +45,18 @@ export const FadeTool = ({tip, iconClass, layer, mapSources, direction, onFade})
             onClick={() => {
                 // collect the map sources
                 const map_sources = {};
-                for(let i = 0, ii = layer.src.length; i < ii; i++) {
+                for (let i = 0, ii = layer.src.length; i < ii; i++) {
                     const ms_name = layer.src[i].mapSourceName;
                     map_sources[ms_name] = mapSources[ms_name].opacity;
                 }
 
-                for(const ms_name in map_sources) {
-                    let new_opacity = map_sources[ms_name] += direction;
+                for (const ms_name in map_sources) {
+                    let new_opacity = (map_sources[ms_name] += direction);
 
                     // check the bounds
-                    if(new_opacity < 0) {
+                    if (new_opacity < 0) {
                         new_opacity = 0;
-                    } else if(new_opacity > 1) {
+                    } else if (new_opacity > 1) {
                         new_opacity = 1;
                     }
 
@@ -59,12 +65,12 @@ export const FadeTool = ({tip, iconClass, layer, mapSources, direction, onFade})
             }}
         />
     );
-}
+};
 
 FadeTool.defaultProps = {
-    tip: 'fade-tip',
-    iconClass: 'fade',
-    direction: -.1,
+    tip: "fade-tip",
+    iconClass: "fade",
+    direction: -0.1,
 };
 
 function mapState(state) {
@@ -78,7 +84,7 @@ function mapDispatch(dispatch) {
         onFade: (mapSourceName, opacity) => {
             dispatch(setOpacity(mapSourceName, opacity));
         },
-    }
+    };
 }
 
 export default connect(mapState, mapDispatch)(FadeTool);

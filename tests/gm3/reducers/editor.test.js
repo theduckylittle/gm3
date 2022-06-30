@@ -22,15 +22,15 @@
  * SOFTWARE.
  */
 
-import reducer from 'gm3/reducers/editor'
-import {setEditFeature, finishEditing} from 'gm3/actions/edit'
+import reducer from "gm3/reducers/editor";
+import { setEditFeature, finishEditing } from "gm3/actions/edit";
 
-describe('test the `edit` reducer', () => {
-    it('sets and clears the editing feature', () => {
+describe("test the `edit` reducer", () => {
+    it("sets and clears the editing feature", () => {
         const fakeFeature = {
-            type: 'Feature',
+            type: "Feature",
             geometry: {
-                type: 'Point',
+                type: "Point",
                 coordinates: [0, 0],
             },
             properties: {},
@@ -41,16 +41,16 @@ describe('test the `edit` reducer', () => {
         nextState = reducer(nextState, setEditFeature(fakeFeature));
         expect(nextState).toEqual({
             feature: fakeFeature,
-            source: '',
-            modal: 'edit',
+            source: "",
+            modal: "edit",
             isNew: false,
         });
 
         nextState = reducer(nextState, finishEditing());
         expect(nextState).toEqual({
             feature: null,
-            source: '',
-            modal: '',
+            source: "",
+            modal: "",
             isNew: false,
         });
     });

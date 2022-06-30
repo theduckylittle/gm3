@@ -28,48 +28,65 @@
  *
  */
 
-import { createStore, combineReducers, applyMiddleware } from 'redux';
-import thunk from 'redux-thunk';
-import i18next from 'i18next';
+import { createStore, combineReducers, applyMiddleware } from "redux";
+import thunk from "redux-thunk";
+import i18next from "i18next";
 
-import * as Proj from 'ol/proj';
+import * as Proj from "ol/proj";
 
-import * as ExperimentalApi from './experimental';
-import * as mapSourceActions from './actions/mapSource';
-import * as mapActions from './actions/map';
-import * as uiActions from './actions/ui';
-import * as serviceActions from './actions/service';
+import * as ExperimentalApi from "./experimental";
+import * as mapSourceActions from "./actions/mapSource";
+import * as mapActions from "./actions/map";
+import * as uiActions from "./actions/ui";
+import * as serviceActions from "./actions/service";
 
-import { parseCatalog } from './actions/catalog';
-import { parseToolbar } from './actions/toolbar';
-import { setConfig } from './actions/config';
+import { parseCatalog } from "./actions/catalog";
+import { parseToolbar } from "./actions/toolbar";
+import { setConfig } from "./actions/config";
 
-import catalogReducer from './reducers/catalog';
-import msReducer from './reducers/mapSource';
-import mapReducer from './reducers/map';
-import toolbarReducer from './reducers/toolbar';
-import queryReducer from './reducers/query';
-import uiReducer from './reducers/ui';
-import cursorReducer from './reducers/cursor';
-import printReducer from './reducers/print';
-import configReducer from './reducers/config';
-import editorReducer from './reducers/editor';
+import catalogReducer from "./reducers/catalog";
+import msReducer from "./reducers/mapSource";
+import mapReducer from "./reducers/map";
+import toolbarReducer from "./reducers/toolbar";
+import queryReducer from "./reducers/query";
+import uiReducer from "./reducers/ui";
+import cursorReducer from "./reducers/cursor";
+import printReducer from "./reducers/print";
+import configReducer from "./reducers/config";
+import editorReducer from "./reducers/editor";
 
-import Modal from './components/modal';
+import Modal from "./components/modal";
 
-import React from 'react';
-import {createRoot} from 'react-dom/client';
-import proj4 from 'proj4';
-import { register } from 'ol/proj/proj4';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import proj4 from "proj4";
+import { register } from "ol/proj/proj4";
 
-import { getLayerFromPath, getVisibleLayers, getQueryableLayers, getActiveMapSources } from './actions/mapSource';
+import {
+    getLayerFromPath,
+    getVisibleLayers,
+    getQueryableLayers,
+    getActiveMapSources,
+} from "./actions/mapSource";
 
-import Mark from 'markup-js';
+import Mark from "markup-js";
 
-import { addProjDef, getMapSourceName, getLayerName, FORMAT_OPTIONS, parseQuery } from './util';
+import {
+    addProjDef,
+    getMapSourceName,
+    getLayerName,
+    FORMAT_OPTIONS,
+    parseQuery,
+} from "./util";
 
-import i18nConfigure from './i18n';
-import { EDIT_LAYER_NAME, EDIT_STYLE, HIGHLIGHT_STYLE, HIGHLIGHT_HOT_STYLE, SELECTION_STYLE } from './defaults';
+import i18nConfigure from "./i18n";
+import {
+    EDIT_LAYER_NAME,
+    EDIT_STYLE,
+    HIGHLIGHT_STYLE,
+    HIGHLIGHT_HOT_STYLE,
+    SELECTION_STYLE,
+} from "./defaults";
 
 function hydrateConfig(userConfig) {
     const config = Object.assign({}, userConfig);
@@ -77,8 +94,16 @@ function hydrateConfig(userConfig) {
     //  set the defaults, so it's handled individually.
     if (userConfig.resultsStyle) {
         config.resultsStyle = {
-            highlight: Object.assign({}, HIGHLIGHT_STYLE, userConfig.resultsStyle.highlight),
-            hot: Object.assign({}, HIGHLIGHT_HOT_STYLE, userConfig.resultsStyle.hot),
+            highlight: Object.assign(
+                {},
+                HIGHLIGHT_STYLE,
+                userConfig.resultsStyle.highlight
+            ),
+            hot: Object.assign(
+                {},
+                HIGHLIGHT_HOT_STYLE,
+                userConfig.resultsStyle.hot
+            ),
         };
     } else {
         config.resultsStyle = {
@@ -87,22 +112,25 @@ function hydrateConfig(userConfig) {
         };
     }
 
-    config.selectionStyle = Object.assign({}, SELECTION_STYLE, userConfig.selectionStyle);
+    config.selectionStyle = Object.assign(
+        {},
+        SELECTION_STYLE,
+        userConfig.selectionStyle
+    );
 
     return config;
 }
 
 function getServiceRunOptions(serviceDef) {
     const runOpts = {};
-    const boolKeys = ['zoomToResults', 'gridMinimized'];
-    boolKeys.forEach(key => {
+    const boolKeys = ["zoomToResults", "gridMinimized"];
+    boolKeys.forEach((key) => {
         runOpts[key] = serviceDef[key] === true;
     });
     return runOpts;
 }
 
 class Application {
-
     constructor(userConfig = {}) {
         const config = hydrateConfig(userConfig);
 
@@ -119,26 +147,31 @@ class Application {
         register(proj4);
 
         // TODO: Combine Reducers here
-        this.store = createStore(combineReducers({
-            'mapSources': msReducer,
-            'catalog': catalogReducer,
-            'map': mapReducer,
-            'toolbar': toolbarReducer,
-            'query': queryReducer,
-            'ui': uiReducer,
-            'cursor': cursorReducer,
-            'print': printReducer,
-            'config': configReducer,
-            'editor': editorReducer,
-        }), applyMiddleware(thunk));
+        this.store = createStore(
+            combineReducers({
+                mapSources: msReducer,
+                catalog: catalogReducer,
+                map: mapReducer,
+                toolbar: toolbarReducer,
+                query: queryReducer,
+                ui: uiReducer,
+                cursor: cursorReducer,
+                print: printReducer,
+                config: configReducer,
+                editor: editorReducer,
+            }),
+            applyMiddleware(thunk)
+        );
 
         this.store.dispatch(setConfig(config));
 
         this.state = {};
 
-        this.store.subscribe(() => { this.shouldUiUpdate(); });
+        this.store.subscribe(() => {
+            this.shouldUiUpdate();
+        });
 
-        this.showWarnings = (config.showWarnings === true);
+        this.showWarnings = config.showWarnings === true;
 
         // import the experimental API.
         this.experimental = {};
@@ -155,7 +188,7 @@ class Application {
         // set the service name to whatever it was registered as.
         service.name = serviceName;
         // see if there is an alais for the service.
-        service.alias = options.alias || '';
+        service.alias = options.alias || "";
         // check for results config
         service.resultsConfig = {
             ...service.resultsConfig,
@@ -169,7 +202,9 @@ class Application {
      *  will run when they are a clicked.
      */
     registerAction(actionName, actionClass, options) {
-        if(typeof(options) != 'object') { options = {}; }
+        if (typeof options != "object") {
+            options = {};
+        }
         this.actions[actionName] = new actionClass(this, options);
     }
 
@@ -181,136 +216,177 @@ class Application {
      */
     configureResultsLayer(resultsStyle = {}) {
         // add a blank base layer as "blank/blank"
-        this.store.dispatch(mapSourceActions.add({
-            name: 'blank',
-            urls: [],
-            type: 'blank',
-        }));
-        this.store.dispatch(mapSourceActions.addLayer('blank', {
-            name: 'blank',
-            on: false,
-            label: 'No basemap',
-        }));
+        this.store.dispatch(
+            mapSourceActions.add({
+                name: "blank",
+                urls: [],
+                type: "blank",
+            })
+        );
+        this.store.dispatch(
+            mapSourceActions.addLayer("blank", {
+                name: "blank",
+                on: false,
+                label: "No basemap",
+            })
+        );
 
         // add a layer that listens for changes
         //  to the query results.  This hs
-        this.store.dispatch(mapSourceActions.add({
-            name: 'results',
-            urls: [],
-            type: 'vector',
-            label: 'Results',
-            opacity: 1.0,
-            queryable: false,
-            refresh: null,
-            options: {
-                'always-on': true,
-            },
-            params: {},
-            // stupid high z-index to ensure results are
-            //  on top of everything else.
-            zIndex: 200001,
-        }));
+        this.store.dispatch(
+            mapSourceActions.add({
+                name: "results",
+                urls: [],
+                type: "vector",
+                label: "Results",
+                opacity: 1.0,
+                queryable: false,
+                refresh: null,
+                options: {
+                    "always-on": true,
+                },
+                params: {},
+                // stupid high z-index to ensure results are
+                //  on top of everything else.
+                zIndex: 200001,
+            })
+        );
 
-        const results_style = Object.assign({}, HIGHLIGHT_STYLE, resultsStyle.highlight);
-        this.store.dispatch(mapSourceActions.addLayer('results', {
-            name: 'results',
-            on: true,
-            label: 'Results',
-            selectable: true,
-            style: results_style,
-            // filter: null,
-        }));
+        const results_style = Object.assign(
+            {},
+            HIGHLIGHT_STYLE,
+            resultsStyle.highlight
+        );
+        this.store.dispatch(
+            mapSourceActions.addLayer("results", {
+                name: "results",
+                on: true,
+                label: "Results",
+                selectable: true,
+                style: results_style,
+                // filter: null,
+            })
+        );
 
         // the "hot" layer shows the features as red on the map,
         //  namely useful for hover-over functionality.
-        const hot_style = Object.assign({}, HIGHLIGHT_HOT_STYLE, resultsStyle.hot);
-        this.store.dispatch(mapSourceActions.addLayer('results', {
-            name: 'results-hot',
-            on: true,
-            style: hot_style,
-            filter: ['==', 'displayClass', 'hot'],
-        }));
+        const hot_style = Object.assign(
+            {},
+            HIGHLIGHT_HOT_STYLE,
+            resultsStyle.hot
+        );
+        this.store.dispatch(
+            mapSourceActions.addLayer("results", {
+                name: "results-hot",
+                on: true,
+                style: hot_style,
+                filter: ["==", "displayClass", "hot"],
+            })
+        );
     }
 
     configureSelectionLayer(selectionStyle, editStyle) {
         // add a layer that listens for changes
         //  to the query results.  This hs
-        this.store.dispatch(mapSourceActions.add({
-            name: 'selection',
-            urls: [],
-            type: 'vector',
-            label: 'Selection',
-            opacity: 1.0,
-            queryable: false,
-            refresh: null,
-            layers: [],
-            options: {
-                'always-on': true,
-            },
-            params: {},
-            // stupid high z-index to ensure results are
-            //  on top of everything else.
-            zIndex: 200002,
-        }));
+        this.store.dispatch(
+            mapSourceActions.add({
+                name: "selection",
+                urls: [],
+                type: "vector",
+                label: "Selection",
+                opacity: 1.0,
+                queryable: false,
+                refresh: null,
+                layers: [],
+                options: {
+                    "always-on": true,
+                },
+                params: {},
+                // stupid high z-index to ensure results are
+                //  on top of everything else.
+                zIndex: 200002,
+            })
+        );
 
-        const selection_style = Object.assign({}, SELECTION_STYLE, selectionStyle);
-        this.store.dispatch(mapSourceActions.addLayer('selection', {
-            name: 'selection',
-            on: true,
-            style: selection_style,
-            filter: null,
-        }));
+        const selection_style = Object.assign(
+            {},
+            SELECTION_STYLE,
+            selectionStyle
+        );
+        this.store.dispatch(
+            mapSourceActions.addLayer("selection", {
+                name: "selection",
+                on: true,
+                style: selection_style,
+                filter: null,
+            })
+        );
 
         // temproary layer for editing.
-        this.store.dispatch(mapSourceActions.add({
-            name: EDIT_LAYER_NAME,
-            urls: [],
-            type: 'vector',
-            opacity: 1.0,
-            queryable: false,
-            refresh: null,
-            layers: [],
-            options: {
-                'always-on': true,
-            },
-            params: {},
-            zIndex: 200003,
-        }));
+        this.store.dispatch(
+            mapSourceActions.add({
+                name: EDIT_LAYER_NAME,
+                urls: [],
+                type: "vector",
+                opacity: 1.0,
+                queryable: false,
+                refresh: null,
+                layers: [],
+                options: {
+                    "always-on": true,
+                },
+                params: {},
+                zIndex: 200003,
+            })
+        );
 
-        this.store.dispatch(mapSourceActions.addLayer(EDIT_LAYER_NAME, {
-            name: EDIT_LAYER_NAME,
-            on: true,
-            style: Object.assign({}, EDIT_STYLE, editStyle),
-            filter: null,
-        }));
+        this.store.dispatch(
+            mapSourceActions.addLayer(EDIT_LAYER_NAME, {
+                name: EDIT_LAYER_NAME,
+                on: true,
+                style: Object.assign({}, EDIT_STYLE, editStyle),
+                filter: null,
+            })
+        );
     }
 
     populateMapbook(contents) {
         let mapbookXml = contents;
-        if (typeof contents === 'string') {
-            mapbookXml = (new DOMParser()).parseFromString(contents, 'text/xml');
+        if (typeof contents === "string") {
+            mapbookXml = new DOMParser().parseFromString(contents, "text/xml");
         }
 
-        this.configureSelectionLayer(this.config.selectionStyle, this.config.editStyle);
+        this.configureSelectionLayer(
+            this.config.selectionStyle,
+            this.config.editStyle
+        );
         this.configureResultsLayer(this.config.resultsStyle);
 
         // load the map-sources
-        const sources = mapbookXml.getElementsByTagName('map-source');
-        for(let i = 0, ii = sources.length; i < ii; i++) {
+        const sources = mapbookXml.getElementsByTagName("map-source");
+        for (let i = 0, ii = sources.length; i < ii; i++) {
             const ms = sources[i];
-            const map_source_actions = mapSourceActions.addFromXml(ms, this.config);
-            for(const action of map_source_actions) {
+            const map_source_actions = mapSourceActions.addFromXml(
+                ms,
+                this.config
+            );
+            for (const action of map_source_actions) {
                 this.store.dispatch(action);
             }
         }
 
-        const catalog_actions = parseCatalog(this.store, mapbookXml.getElementsByTagName('catalog')[0]);
-        for(const action of catalog_actions) {
+        const catalog_actions = parseCatalog(
+            this.store,
+            mapbookXml.getElementsByTagName("catalog")[0]
+        );
+        for (const action of catalog_actions) {
             this.store.dispatch(action);
         }
 
-        const toolbar_actions = parseToolbar(mapbookXml.getElementsByTagName('toolbar')[0]);
-        for(const action of toolbar_actions) {
+        const toolbar_actions = parseToolbar(
+            mapbookXml.getElementsByTagName("toolbar")[0]
+        );
+        for (const action of toolbar_actions) {
             this.store.dispatch(action);
         }
 
@@ -328,7 +404,7 @@ class Application {
 
         if (this.config.mapbooks) {
             // check for a mapbook in the hash
-            const mapbookName = parseQuery().query.mapbook || 'default';
+            const mapbookName = parseQuery().query.mapbook || "default";
             if (mapbookName && this.config.mapbooks[mapbookName]) {
                 mapbookUrl = this.config.mapbooks[mapbookName];
             }
@@ -336,8 +412,8 @@ class Application {
 
         if (mapbookUrl) {
             return fetch(mapbookUrl, fetchOpts)
-                .then(r => r.text())
-                .then(content => {
+                .then((r) => r.text())
+                .then((content) => {
                     return this.populateMapbook(content);
                 });
         } else if (options.content) {
@@ -345,14 +421,17 @@ class Application {
                 resolve(this.populateMapbook(options.content));
             });
         } else {
-            alert('No mapbook configured.');
+            alert("No mapbook configured.");
         }
     }
 
     add(component, domId, inProps = {}) {
-        const props = Object.assign({
-            store: this.store,
-        }, inProps);
+        const props = Object.assign(
+            {
+                store: this.store,
+            },
+            inProps
+        );
         props.services = this.services;
 
         const e = React.createElement(component, props);
@@ -361,18 +440,20 @@ class Application {
     }
 
     addPlugin(component, domId, inProps = {}) {
-        const props = Object.assign({
-            store: this.store,
-            React: React,
-            ReactDOM: {createRoot},
-        }, inProps);
+        const props = Object.assign(
+            {
+                store: this.store,
+                React: React,
+                ReactDOM: { createRoot },
+            },
+            inProps
+        );
         props.services = this.services;
 
         const e = React.createElement(component, props);
         const root = createRoot(document.getElementById(domId));
         root.render(e);
     }
-
 
     /** Run a query against the listed map-sources.
      *
@@ -389,13 +470,13 @@ class Application {
 
         // convert the "templatesIn" to an array.
         let templates = templatesIn;
-        if(typeof(templatesIn) === 'string') {
+        if (typeof templatesIn === "string") {
             templates = [templatesIn];
         }
 
         // iterate through the layer and the templates.
-        for(const layer of layers) {
-            for(const template of templates) {
+        for (const layer of layers) {
+            for (const template of templates) {
                 // gang the promises together.
                 template_promises.push(this.getTemplate(layer, template));
             }
@@ -407,7 +488,16 @@ class Application {
         // require all the promises complete,
         //  then dispatch the store.
         Promise.all(template_promises).then(() => {
-            this.store.dispatch(mapActions.createQuery(service, selection, fields, layers, single_query, runOptions));
+            this.store.dispatch(
+                mapActions.createQuery(
+                    service,
+                    selection,
+                    fields,
+                    layers,
+                    single_query,
+                    runOptions
+                )
+            );
         });
     }
 
@@ -420,32 +510,37 @@ class Application {
      */
     getTemplate(path, template) {
         const template_promise = new Promise((resolve, reject) => {
-            if(template.substring(0, 1) === '@') {
+            if (template.substring(0, 1) === "@") {
                 const template_name = template.substring(1);
-                const layer = getLayerFromPath(this.store.getState().mapSources, path);
+                const layer = getLayerFromPath(
+                    this.store.getState().mapSources,
+                    path
+                );
                 const layer_template = layer.templates[template_name];
 
-                if(layer_template) {
-                    if(layer_template.type === 'alias') {
+                if (layer_template) {
+                    if (layer_template.type === "alias") {
                         // TODO: Someone is likely to think it's funny to do multiple
                         //       levels of aliasing, this should probably look through that
                         //       possibility.
                         resolve(layer.templates[layer_template.alias].contents);
-                    } else if(layer_template.type === 'remote') {
+                    } else if (layer_template.type === "remote") {
                         const ms_name = getMapSourceName(path);
                         const layer_name = getLayerName(path);
 
                         // fetch the contents of the template
                         fetch(layer_template.src)
-                            .then(r => r.text())
-                            .then(content => {
+                            .then((r) => r.text())
+                            .then((content) => {
                                 // convert the "remote" template to a local one
                                 this.store.dispatch(
                                     mapSourceActions.setLayerTemplate(
-                                        ms_name, layer_name,
-                                        template_name, {
+                                        ms_name,
+                                        layer_name,
+                                        template_name,
+                                        {
                                             ...layer_template,
-                                            type: 'local',
+                                            type: "local",
                                             contents: content,
                                         }
                                     )
@@ -456,7 +551,7 @@ class Application {
                             // when there is an error fetching the template,
                             // 404 or whatever, return a blank template.
                             .catch(() => {
-                                resolve('');
+                                resolve("");
                             });
                     } else {
                         resolve(layer.templates[template_name].contents);
@@ -475,7 +570,7 @@ class Application {
                     // reject('Failed to find template. ' + path + '@' + template_name);
 
                     // resolve this as an empty template.
-                    resolve('');
+                    resolve("");
                 }
             }
         });
@@ -494,80 +589,103 @@ class Application {
      */
     renderFeaturesWithTemplate(query, path, template) {
         let template_contents = template;
-        let html_contents = '';
+        let html_contents = "";
 
-        if(query.results[path]) {
-            if(query.results[path].failed === true) {
+        if (query.results[path]) {
+            if (query.results[path].failed === true) {
                 html_contents = `
                     <div class="query-error">
                         <div class="error-header">Error</div>
                         <div class="error-contents">
-                        ${ query.results[path].failureMessage }
+                        ${query.results[path].failureMessage}
                         </div>
                     </div>
                 `;
-            } else if(template.substring(0, 1) === '@') {
+            } else if (template.substring(0, 1) === "@") {
                 const template_name = template.substring(1);
-                const layer = getLayerFromPath(this.store.getState().mapSources, path);
+                const layer = getLayerFromPath(
+                    this.store.getState().mapSources,
+                    path
+                );
                 const layer_template = layer.templates[template_name];
 
-                if(layer_template) {
-                    if(layer_template.type === 'alias') {
+                if (layer_template) {
+                    if (layer_template.type === "alias") {
                         // TODO: Someone is likely to think it's funny to do multiple
                         //       levels of aliasing, this should probably look through that
                         //       possibility.
-                        template_contents = layer.templates[layer_template.alias].contents;
+                        template_contents =
+                            layer.templates[layer_template.alias].contents;
                     } else {
-                        template_contents = layer.templates[template_name].contents;
+                        template_contents =
+                            layer.templates[template_name].contents;
                     }
                 } else {
                     template_contents = null;
                     // only show warnings when the application is
                     //  configured to do so.
-                    if(this.showWarnings) {
-                        console.info('Failed to find template.', path, template_name);
+                    if (this.showWarnings) {
+                        console.info(
+                            "Failed to find template.",
+                            path,
+                            template_name
+                        );
                     }
                 }
 
                 // do not try to iterate through the features if
                 //  the template does not exist.
-                if(template_contents) {
-                    for(const feature of query.results[path]) {
+                if (template_contents) {
+                    for (const feature of query.results[path]) {
                         // TODO: Make this plugable, check by template "type"?!?
-                        html_contents += Mark.up(template_contents, feature, FORMAT_OPTIONS);
+                        html_contents += Mark.up(
+                            template_contents,
+                            feature,
+                            FORMAT_OPTIONS
+                        );
                     }
-                } else if(layer_template && layer_template.type === 'auto') {
+                } else if (layer_template && layer_template.type === "auto") {
                     const features = query.results[path];
-                    for(let i = 0, ii = features.length; i < ii; i++) {
+                    for (let i = 0, ii = features.length; i < ii; i++) {
                         const feature = features[i];
 
                         html_contents += '<div class="result">';
-                        html_contents += '<div class="feature-class">'
+                        html_contents += '<div class="feature-class">';
                         html_contents += layer.label;
-                        html_contents += '</div>';
+                        html_contents += "</div>";
 
-                        const properties = Object.keys(feature.properties || {})
-                            .filter(key => key !== '_uuid');
+                        const properties = Object.keys(
+                            feature.properties || {}
+                        ).filter((key) => key !== "_uuid");
 
                         if (properties.length > 0) {
-                            for(let k = 0, kk = properties.length; k < kk; k++) {
+                            for (
+                                let k = 0, kk = properties.length;
+                                k < kk;
+                                k++
+                            ) {
                                 const key = properties[k];
                                 const value = feature.properties[key];
-                                html_contents += Mark.up('<b>{{ key }}:</b> {{ value }} <br/>', {
-                                    key, value,
-                                }, FORMAT_OPTIONS);
+                                html_contents += Mark.up(
+                                    "<b>{{ key }}:</b> {{ value }} <br/>",
+                                    {
+                                        key,
+                                        value,
+                                    },
+                                    FORMAT_OPTIONS
+                                );
                             }
                         } else {
                             // no properties
-                            html_contents += '<i>' + i18next.t('empty-properties') + '</i>';
+                            html_contents +=
+                                "<i>" + i18next.t("empty-properties") + "</i>";
                         }
-                        html_contents += '</div>';
+                        html_contents += "</div>";
                     }
-
                 }
-            } else if(template) {
+            } else if (template) {
                 // assume the template is template contents.
-                for(const feature of query.results[path]) {
+                for (const feature of query.results[path]) {
                     html_contents += Mark.up(template, feature, FORMAT_OPTIONS);
                 }
             }
@@ -585,27 +703,30 @@ class Application {
      *
      */
     renderTemplate(path, template, params) {
-        if(template.substring(0, 1) === '@') {
+        if (template.substring(0, 1) === "@") {
             const template_name = template.substring(1);
-            const layer = getLayerFromPath(this.store.getState().mapSources, path);
+            const layer = getLayerFromPath(
+                this.store.getState().mapSources,
+                path
+            );
             const layer_template = layer.templates[template_name];
-            let template_contents = '';
+            let template_contents = "";
 
-            if(layer_template) {
-                if(layer_template.type === 'alias') {
+            if (layer_template) {
+                if (layer_template.type === "alias") {
                     // TODO: Someone is likely to think it's funny to do multiple
                     //       levels of aliasing, this should probably look through that
                     //       possibility.
-                    template_contents = layer.templates[layer_template.alias].contents;
+                    template_contents =
+                        layer.templates[layer_template.alias].contents;
                 } else {
                     template_contents = layer.templates[template_name].contents;
                 }
                 return Mark.up(template_contents, params, FORMAT_OPTIONS);
             }
         }
-        return '';
+        return "";
     }
-
 
     /** Map the active map-source function to the application.
      *
@@ -650,7 +771,7 @@ class Application {
         // TODO: The destination projection should come
         //       from the map state.
         // convert the lon lat coordinates to map coordinates
-        const xy = Proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857');
+        const xy = Proj.transform([lon, lat], "EPSG:4326", "EPSG:3857");
         // trigger a move.
         this.store.dispatch(mapActions.move(xy, zoom));
     }
@@ -679,20 +800,22 @@ class Application {
     /** Removes features from a query.
      */
     removeQueryResults(queryId, filter, options = {}) {
-        const execRemove = choice => {
-            if (choice === 'confirm') {
+        const execRemove = (choice) => {
+            if (choice === "confirm") {
                 this.store.dispatch(mapActions.queryProgress(queryId));
-                this.store.dispatch(mapActions.removeQueryResults(queryId, filter));
+                this.store.dispatch(
+                    mapActions.removeQueryResults(queryId, filter)
+                );
                 // also remove the features from the results layer.
-                this.removeFeatures('results/results', filter);
+                this.removeFeatures("results/results", filter);
                 this.store.dispatch(mapActions.finishQuery(queryId));
             }
         };
 
         if (options.withConfirm) {
-            this.confirm('remove-feature', 'Remove feature?', execRemove);
+            this.confirm("remove-feature", "Remove feature?", execRemove);
         } else {
-            execRemove('confirm');
+            execRemove("confirm");
         }
     }
 
@@ -707,13 +830,15 @@ class Application {
      */
     changeFeatures(path, filter, properties) {
         const ms_name = getMapSourceName(path);
-        this.store.dispatch(mapSourceActions.changeFeatures(ms_name, filter, properties));
+        this.store.dispatch(
+            mapSourceActions.changeFeatures(ms_name, filter, properties)
+        );
     }
 
     /* Shorthand for manipulating result features.
      */
     changeResultFeatures(filter, properties) {
-        this.changeFeatures('results/results', filter, properties);
+        this.changeFeatures("results/results", filter, properties);
     }
 
     /** Clears the UI hint.  Used by applications to indicate
@@ -728,7 +853,7 @@ class Application {
      */
     shouldUiUpdate() {
         const ui = this.store.getState().ui;
-        if(ui.stateId !== this.state.stateId) {
+        if (ui.stateId !== this.state.stateId) {
             this.state.stateId = ui.stateId;
             this.runAction();
             this.uiUpdate(ui);
@@ -740,7 +865,7 @@ class Application {
      */
     runAction() {
         const ui = this.store.getState().ui;
-        if(ui.action) {
+        if (ui.action) {
             this.actions[ui.action].run();
             this.store.dispatch(uiActions.clearAction());
         }
@@ -759,9 +884,10 @@ class Application {
     startService(serviceName, options) {
         this.store.dispatch(serviceActions.startService(serviceName));
 
-        const nextTool = (options && options.changeTool)
-            ? options.changeTool
-            : this.services[serviceName].tools.default;
+        const nextTool =
+            options && options.changeTool
+                ? options.changeTool
+                : this.services[serviceName].tools.default;
 
         this.store.dispatch(mapActions.changeTool(nextTool));
 
@@ -770,14 +896,16 @@ class Application {
             this.store.dispatch(mapActions.setSelectionBuffer(0));
             // dispatch the features
             this.store.dispatch(mapActions.clearSelectionFeatures());
-            options.withFeatures.forEach(feature => {
+            options.withFeatures.forEach((feature) => {
                 this.store.dispatch(mapActions.addSelectionFeature(feature));
             });
-            this.store.dispatch(mapSourceActions.clearFeatures('selection'));
-            this.store.dispatch(mapSourceActions.addFeatures('selection', options.withFeatures));
+            this.store.dispatch(mapSourceActions.clearFeatures("selection"));
+            this.store.dispatch(
+                mapSourceActions.addFeatures("selection", options.withFeatures)
+            );
         }
 
-        this.store.dispatch(uiActions.setUiHint('service-start'));
+        this.store.dispatch(uiActions.setUiHint("service-start"));
     }
 
     /** Handle updating the UI, does nothing in vanilla form.
@@ -789,31 +917,29 @@ class Application {
     /* Show an alert type dialog
      */
     alert(signature, message, callback = null) {
-        const options = [
-            {label: 'Okay', value: 'dismiss'}
-        ];
-        this.showDialog(signature, 'Alert', message, options, callback);
+        const options = [{ label: "Okay", value: "dismiss" }];
+        this.showDialog(signature, "Alert", message, options, callback);
     }
 
     confirm(signature, message, callback = null) {
         const options = [
-            {label: 'Cancel', value: 'dismiss'},
-            {label: 'Okay', value: 'confirm'}
+            { label: "Cancel", value: "dismiss" },
+            { label: "Okay", value: "confirm" },
         ];
-        this.showDialog(signature, 'Confirm', message, options, callback);
+        this.showDialog(signature, "Confirm", message, options, callback);
     }
 
     showDialog(signature, title, message, options, callback = null) {
         // create a target div for the dialog.
-        const body = document.getElementsByTagName('body')[0];
-        const modal_div = document.createElement('div');
+        const body = document.getElementsByTagName("body")[0];
+        const modal_div = document.createElement("div");
         body.appendChild(modal_div);
 
         // configure the new props.
         const props = {
             title: title,
             onClose: (value) => {
-                if(typeof callback === 'function') {
+                if (typeof callback === "function") {
                     callback(value);
                 }
                 body.removeChild(modal_div);
@@ -858,21 +984,21 @@ class Application {
     /* Short hand for toggling the highlight of features.
      */
     highlightFeatures(filter, on) {
-        const props = {displayClass: on ? 'hot' : ''};
+        const props = { displayClass: on ? "hot" : "" };
         this.changeResultFeatures(filter, props);
     }
 
     /* Clear highlight features
      */
     clearHighlight() {
-        this.highlightFeatures({displayClass: 'hot'}, false);
+        this.highlightFeatures({ displayClass: "hot" }, false);
     }
 
     /**
      * Project a point to web mercator.
      */
     lonLatToMeters(lon, lat) {
-        return Proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857');
+        return Proj.transform([lon, lat], "EPSG:4326", "EPSG:3857");
     }
 
     /**
@@ -883,7 +1009,6 @@ class Application {
         const [maxx, maxy] = this.lonLatToMeters(east, north);
         return [minx, miny, maxx, maxy];
     }
-};
-
+}
 
 export default Application;

@@ -7,17 +7,19 @@
  *
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider, connect } from 'react-redux';
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider, connect } from "react-redux";
 
-import { getMapSourceName, getLayerName } from './util';
-import { setLayerVisibility as setLayerVis } from './actions/mapSource';
+import { getMapSourceName, getLayerName } from "./util";
+import { setLayerVisibility as setLayerVis } from "./actions/mapSource";
 
 export function addConnectedPlugin(plugin, domId, inProps = {}) {
     // connect the component so it will update
     //  based on the state-map
-    const WrappedComponent = connect(plugin.mapStateToProps)(plugin.component(React));
+    const WrappedComponent = connect(plugin.mapStateToProps)(
+        plugin.component(React)
+    );
 
     // pepper in the extra props
     const props = Object.assign({}, inProps, {
@@ -26,11 +28,12 @@ export function addConnectedPlugin(plugin, domId, inProps = {}) {
     });
 
     // this.store comes from Application.
-    return ReactDOM.render((
+    return ReactDOM.render(
         <Provider store={this.store}>
             <WrappedComponent {...props} />
-        </Provider>
-    ), document.getElementById(domId));
+        </Provider>,
+        document.getElementById(domId)
+    );
 }
 
 export function setLayerVisibility(path, on) {
