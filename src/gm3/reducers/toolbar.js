@@ -34,7 +34,7 @@ import {
 } from '../actions/toolbar';
 
 /*
- * TOOLBAR tool definition
+ * Toolbar tool definition
  * action.order
  * action.type
  * action.tool

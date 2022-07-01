@@ -26,7 +26,6 @@
  *
  */
 
-import { TOOLBAR } from '../actionTypes';
 import { createAction, createAsyncThunk } from '@reduxjs/toolkit';
 
 export const addTool = createAction('toolbar/add', (root, tool, order = 'last') => ({

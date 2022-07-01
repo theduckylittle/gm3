@@ -72,11 +72,6 @@ export const MAP = {
     RESIZE: 'MAP_RESIZE',
 };
 
-export const TOOLBAR = {
-    ADD: 'TOOLBAR_ADD',
-    REMOVE: 'TOOLBAR_REMOVE'
-};
-
 export const QUERY = {
     START: 'QUERY_START',
     RESULTS: 'QUERY_RESULTS',
