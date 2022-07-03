@@ -99,8 +99,8 @@ const reducer = createReducer({}, {
         state[mapSourceName].opacity = opacity;
     },
     [reloadSource]: (state, {payload: mapSourceName}) => {
-        state[mapSourceName].featuresVersion = mapSource.featuresVersion ? mapSource.featuresVersion + 1 : 1;
-        state[mapSource].params = {
+        state[mapSourceName].featuresVersion = state[mapSourceName].featuresVersion ? state[mapSourceName].featuresVersion + 1 : 1;
+        state[mapSourceName].params = {
             ...state[mapSource].params,
             _ck: '.' + (new Date()).getTime(),
         };
