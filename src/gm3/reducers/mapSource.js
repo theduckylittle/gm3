@@ -101,7 +101,7 @@ const reducer = createReducer({}, {
     [reloadSource]: (state, {payload: mapSourceName}) => {
         state[mapSourceName].featuresVersion = state[mapSourceName].featuresVersion ? state[mapSourceName].featuresVersion + 1 : 1;
         state[mapSourceName].params = {
-            ...state[mapSource].params,
+            ...state[mapSourceName].params,
             _ck: '.' + (new Date()).getTime(),
         };
     },
@@ -130,7 +130,7 @@ const reducer = createReducer({}, {
     },
     [removeFeatureInternal]: (state, {payload: {mapSourceName, id}}) => {
         state[mapSourceName].features = state[mapSourceName].features.filter(feature => {
-            feature.properties[ID_PROP] !== id;
+            return feature.properties[ID_PROP] !== id;
         });
         state[mapSourceName].featuresVersion += 1;
     },
