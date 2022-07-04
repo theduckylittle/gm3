@@ -26,11 +26,15 @@
  *
  */
 
+import { createReducer } from '@reduxjs/toolkit';
+
 import uuid from 'uuid';
 
 import { MAP, SERVICE } from '../actionTypes';
 
 import * as util from '../util';
+
+import { startService, finishService, createQuery, runQuery } from '../actions/query';
 
 const default_query = {
     service: null,
@@ -97,7 +101,7 @@ function removeQuery(state, queryId) {
     return new_state;
 }
 
-export default function queryReducer(state = default_query, action) {
+export function _queryReducer(state = default_query, action) {
     const new_query = {};
     switch(action.type) {
         case SERVICE.START:
@@ -187,3 +191,57 @@ export default function queryReducer(state = default_query, action) {
             return state;
     }
 };
+
+export const SERVICE_STEPS = {
+    START: 'start',
+    FINISHED: 'finished',
+    LOADING: 'loading',
+    RESULTS: 'results',
+};
+
+const defaultState = {
+    serviceName: null,
+    defaultValues: {},
+    step: '',
+    order: ['query'], // dep soon
+
+    query: {},
+    results: {},
+    filter: {},
+};
+
+const reducer = createReducer(defaultState, {
+    [startService]: (state, {payload: {serviceName, defaultValues}}) => {
+        state.serviceName = serviceName;
+        state.defaultValues = defaultValues;
+        state.step = SERVICE_STEPS.START;
+        state.results = {};
+    },
+    [finishService]: state => {
+        state.serviceName = '';
+        state.defaultValues = {};
+        state.step = SERVICE_STEPS.FINISHED;
+    },
+    [createQuery]: (state, {payload}) => {
+        state.query = payload;
+        // when starting a new query reset the results
+        //   and filters
+        state.results = {};
+        state.filters = {};
+    },
+    [runQuery.pending]: state => {
+        state.step = SERVICE_STEPS.LOADING;
+    },
+    [runQuery.fulfilled]: (state, {payload}) => {
+        state.results = payload;
+        state.step = SERVICE_STEPS.RESULTS;
+    },
+    [runQuery.rejected]: (state, action) => {
+        console.error('Query error!', action.error);
+        state.results = {};
+        // TODO: Throw in a better error display?
+        state.step = SERVICE_STEPS.RESULTS;
+    },
+});
+
+export default reducer;

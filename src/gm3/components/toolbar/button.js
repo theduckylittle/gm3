@@ -31,7 +31,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
-import { startService } from '../../actions/service';
+import { startService } from '../../actions/query';
 import { runAction, setUiHint } from '../../actions/ui';
 import { setSelectionBuffer, changeTool } from '../../actions/map';
 
