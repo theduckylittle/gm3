@@ -42,6 +42,8 @@ import * as mapActions from '../../actions/map';
 import {removeFeature, setEditFeature} from '../../actions/edit';
 import {setCursor, updateSketchGeometry, resizeMap} from '../../actions/cursor';
 
+import {getHighlightResults} from '../../selectors/query';
+
 import * as util from '../../util';
 import * as jsts from '../../jsts';
 
@@ -269,25 +271,14 @@ class Map extends React.Component {
     /* Render the query as a layer.
      *
      */
-    renderQueryLayer(query) {
+    renderQueryLayer() {
         if(this.props.mapSources.results) {
-            let features = [];
-            for (const layer_path in query.results) {
-                // ensure the layer_path does not have a failure.
-                if (query.results[layer_path].failed !== true) {
-                    const layer = mapSourceActions.getLayerFromPath(this.props.mapSources, layer_path);
-                    let highlight = true;
-                    if (layer.templates[query.service]) {
-                        highlight = layer.templates[query.service].highlight !== false;
-                    }
-                    if (highlight) {
-                        // get the features, after applying the query filter
-                        features = features.concat(util.matchFeatures(query.results[layer_path], query.filter));
-                    }
-                }
-            }
-            // render the features from all the layers
-            this.props.setFeatures('results', features);
+            const src = this.olLayers.results.getSource();
+            src.clear(true);
+            src.addFeatures(GEOJSON_FORMAT.readFeatures({
+                type: 'FeatureCollection',
+                features: this.props.highlightResults,
+            }));
         } else {
             console.error('No "results" layer has been defined, cannot do smart query rendering.');
         }
@@ -339,6 +330,8 @@ class Map extends React.Component {
             }
 
         }
+
+        this.renderQueryLayer();
     }
 
     /** Add features to the selection layer.
@@ -926,6 +919,7 @@ function mapState(state) {
         // resolve this to meters
         selectionBuffer: util.convertLength(state.map.selectionBuffer, state.map.selectionBufferUnits, 'm'),
         selectionFeatures: state.map.selectionFeatures,
+        highlightResults: getHighlightResults(state),
     }
 }
 

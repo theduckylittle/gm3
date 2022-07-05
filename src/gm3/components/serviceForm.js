@@ -127,8 +127,7 @@ class ServiceForm extends React.Component {
             validateFieldValuesResultMessage = validateFieldValuesResult.message;
         }
         if (validateFieldValuesResultValid) {
-            // this.props.onSubmit(this.state.values);
-            this.startQuery();
+            this.props.onSubmit(this.state.values);
         } else {
             // update state validation message
             this.setState( {validateFieldValuesResultMessage} );
@@ -150,10 +149,12 @@ class ServiceForm extends React.Component {
         }
     }
 
-    setValue(filedName, value) {
+    setValue(fieldName, value) {
         this.setState({
-            ...values,
-            [fieldName]: value,
+            values: {
+                ...this.state.values,
+                [fieldName]: value,
+            },
         });
     }
 
@@ -164,32 +165,15 @@ class ServiceForm extends React.Component {
         });
     }
 
-    startQuery() {
-        const selection = normalizeSelection(this.props.selectionFeatures);
-        const fields = this.props.serviceDef.fields.map(field => ({
-            name: field.name,
-            value: this.state.values[field.name] || field.default,
-        }));
-
-        // check to see if the selection should stay
-        //  'alive' in the background.
-        if(this.props.serviceDef.keepAlive !== true) {
-            // shutdown the drawing on the layer.
-            this.props.changeTool(null);
-            this.props.finishService();
-        } else {
-            // dispatch(showServiceForm(false));
-        }
-        this.props.serviceDef.query(selection, fields);
-    }
-
     componentDidUpdate(prevProps) {
         if (prevProps.serviceName !== this.props.serviceName) {
             this.resetDefaultValues();
-        }
-
-        if (this.props.serviceDef.autoGo && this.props.selectionFeatures.length > 0) {
-            this.startQuery();
+        } else {
+            // if there was a service change, don't accidentally submit
+            //  the old geometry on the new service.
+            if (this.props.serviceDef.autoGo && this.props.selectionFeatures.length > 0) {
+                this.props.onSubmit(this.state.values);
+            }
         }
     }
 

@@ -10,8 +10,30 @@ import Results from './results';
 import { SERVICE_STEPS } from '../../reducers/query';
 
 
-
-
+function normalizeSelection(selectionFeatures) {
+    // OpenLayers handles MultiPoint geometries in an awkward way,
+    // each feature is a 'MultiPoint' type but only contains one feature,
+    //  this normalizes that in order to be submitted properly to query services.
+    if(selectionFeatures && selectionFeatures.length > 0) {
+        if(selectionFeatures[0].geometry.type === 'MultiPoint') {
+            const all_coords = [];
+            for(const feature of selectionFeatures) {
+                if(feature.geometry.type === 'MultiPoint') {
+                    all_coords.push(feature.geometry.coordinates[0]);
+                }
+            }
+            return [{
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'MultiPoint',
+                    coordinates: all_coords
+                }
+            }];
+        }
+    }
+    return selectionFeatures;
+}
 
 
 const ServiceManager = function({
@@ -25,6 +47,32 @@ const ServiceManager = function({
     finishService,
 }) {
     const serviceDef = services[serviceName];
+
+    const [fieldValues, setFieldValues] = useState({});
+    const [serviceReady, setServiceReady] = useState(false);
+
+    // when the service name changes, reset the field values
+    useEffect(() => {
+        setServiceReady(false);
+        setFieldValues({});
+    }, [serviceDef]);
+
+    useEffect(() => {
+        if (serviceDef && serviceReady === serviceDef.name) {
+            const selection = normalizeSelection(selectionFeatures);
+            const fields = serviceDef.fields.map(field => ({
+                name: field.name,
+                value: fieldValues[field.name] || field.default,
+            }));
+
+            // when keepAlive is true, the background tool can stay on.
+            if (serviceDef.keepAlive !== true) {
+                changeTool(null);
+            }
+            serviceDef.query(selection, fields);
+        }
+    }, [serviceReady, serviceDef, changeTool, fieldValues, selectionFeatures]);
+
     let contents = false;
 
     if (serviceName === 'measure') {
@@ -35,31 +83,9 @@ const ServiceManager = function({
                 serviceName={serviceName}
                 serviceDef={serviceDef}
                 defaultValues={defaultValues}
-                onSubmit={(values) => {
-                    if (serviceDef.autoGo !== true) {
-                        // end the drawing
-                        if (serviceDef.keepAlive !== true) {
-                            changeTool(null);
-                        }
-
-                        const selection = normalizeSelection(selectionFeatures);
-                        const fields = serviceDef.fields.map(field => ({
-                            name: field.name,
-                            value: values[field.name] || field.default,
-                        }));
-
-                        // check to see if the selection should stay
-                        //  'alive' in the background.
-                        if(serviceDef.keepAlive !== true) {
-                            // shutdown the drawing on the layer.
-                            changeTool(null);
-                            finishService();
-                        } else {
-                            dispatch(showServiceForm(false));
-                        }
-
-                        serviceDef.query(selection, fields);
-                    }
+                onSubmit={values => {
+                    setFieldValues(values);
+                    setServiceReady(serviceDef.name);
                 }}
                 onCancel={() => {
                     changeTool(null);

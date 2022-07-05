@@ -11,7 +11,7 @@ import { getExtentForQuery } from '../../util';
 import Modal from '../modal';
 
 
-export const QueryResults= ({
+export const QueryResults = ({
     serviceDef,
     query,
     results,
@@ -19,6 +19,7 @@ export const QueryResults= ({
     config,
     t,
     zoomToExtent,
+    bufferResults,
 }) => {
     const [showTooManyFeatures, setShowTooManyFeatures] = useState(false);
     // These shim the new query format to the old API
@@ -62,7 +63,7 @@ export const QueryResults= ({
 
     return (
         <div>
-           <Modal
+            <Modal
                 open={showTooManyFeatures}
                 options={[{value: 'okay', label: t('Close')}]}
                 onClose={() => {
@@ -142,7 +143,10 @@ export const QueryResults= ({
 
 
 const mapStateToProps = state => ({
-    config: state.config,
+    config: {
+        bufferMaxFeatures: 100,
+        ...state.config.query,
+    },
     query: state.query.query,
     results: state.query.results,
     resultsConfigFromConf: {...DEFAULT_RESULTS_CONFIG, ...state.config.results},
@@ -152,6 +156,5 @@ const mapDispatchToProps = {
     zoomToExtent,
     bufferResults,
 };
-
 
 export default connect(mapStateToProps, mapDispatchToProps)(withTranslation()(QueryResults));
