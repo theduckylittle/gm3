@@ -28,6 +28,7 @@ import { withTranslation } from "react-i18next";
 import { getArea } from "ol/sphere";
 
 import DrawTool from "./drawTool";
+import { changeTool } from "../actions/map";
 
 import * as util from "../util";
 
@@ -44,6 +45,12 @@ export class MeasureTool extends Component {
     this.state = {
       units: this.props.initialUnits ? this.props.initialUnits : "ft",
     };
+  }
+
+  componentDidMount() {
+    if (!this.props.interactionType) {
+      this.props.changeTool(this.props.defaultTool);
+    }
   }
 
   /* Get the bearing of a drawing.
@@ -344,10 +351,21 @@ export class MeasureTool extends Component {
   }
 }
 
+MeasureTool.defaultProps = {
+  defaultTool: "Polygon",
+};
+
 const mapToProps = (state) => ({
   map: state.map,
   cursor: state.cursor,
   mapProjection: "EPSG:3857",
+  interactionType: state.map.interactionType,
 });
 
-export default connect(mapToProps)(withTranslation()(MeasureTool));
+const mapDispatchToProps = {
+  changeTool,
+};
+export default connect(
+  mapToProps,
+  mapDispatchToProps
+)(withTranslation()(MeasureTool));
