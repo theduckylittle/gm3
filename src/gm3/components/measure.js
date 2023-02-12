@@ -352,7 +352,7 @@ export class MeasureTool extends Component {
 }
 
 MeasureTool.defaultProps = {
-  defaultTool: "Polygon",
+  defaultTool: "LineString",
 };
 
 const mapToProps = (state) => ({
