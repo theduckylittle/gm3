@@ -81,9 +81,8 @@
         </layer>
     </map-source>
 
-    <map-source name="vector-parcels" type="wfs" src-proj="EPSG:4326">
-        <url>http://localhost:8000/mapserver/cgi-bin/mapserv</url>
-        <param name="map" value="/data/demo/parcels/parcels.map" />
+    <map-source name="vector-parcels" type="mapserver-wfs">
+        <file>./demo/parcels/parcels.map</file>
         <param name="typename" value="ms:parcels"/>
         <config name="pixel-tolerance" value="0"/>
         <transform attribute="EMV_TOTAL" function="number"/>
